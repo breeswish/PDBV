@@ -1,0 +1,15 @@
+{% extends "extend.html" %}
+{% block title %}Sign Up{% endblock %}
+{% block body %}
+<div class="dialog--signup">
+  <h1>Sign Up</h1>
+  <form action="/signup" method="POST">
+    {% if message && message.length > 0 %}
+      <div class="login__message message message--failure">{{ message }}</div>
+    {% endif %}
+    <div class="form__line"><label>Email</label><input type="email" class="textbox" name="username"></div>
+    <div class="form__line"><label>Password</label><input type="password" class="textbox" name="password"></div>
+    <div class="form__line btn-group"><button class="btn" type="submit">SIGN UP</button> <a href="/login">Login</a></div>
+  </form>
+</div>
+{% endblock %}

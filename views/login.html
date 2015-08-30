@@ -1,0 +1,15 @@
+{% extends "extend.html" %}
+{% block title %}Login{% endblock %}
+{% block body %}
+<div class="dialog--login">
+  <h1>PDB Visualizer</h1>
+  <form action="/login" method="POST">
+    {% if message && message.length > 0 %}
+      <div class="login__message message message--failure">{{ message }}</div>
+    {% endif %}
+    <div class="form__line"><label>Email</label><input type="email" class="textbox" name="username"></div>
+    <div class="form__line"><label>Password</label><input type="password" class="textbox" name="password"></div>
+    <div class="form__line btn-group"><button class="btn" type="submit">LOG IN</button> <a href="/signup">Sign up</a></div>
+  </form>
+</div>
+{% endblock %}
