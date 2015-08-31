@@ -10,9 +10,10 @@ if (PDBV === undefined) {
     this.reset.apply(this, arguments);
   };
 
-  PDBV.Residue.prototype.reset = function (name, num, insCode) {
+  PDBV.Residue.prototype.reset = function (uuid, name, num, insCode) {
     this.chain = null;
     this.index = -1;
+    this.uuid = uuid;
     this.name = name;
     this.num = num;
     this.insCode = insCode;

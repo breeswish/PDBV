@@ -11,7 +11,8 @@ if (PDBV === undefined) {
     this.reset.apply(this, arguments);
   };
 
-  PDBV.Mol.prototype.reset = function (name) {
+  PDBV.Mol.prototype.reset = function (uuid, name) {
+    this.uuid = uuid;
     this.name = name;
     this.chains = [];
     return this;

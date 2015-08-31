@@ -56,6 +56,7 @@ if (PDBV.model === undefined) {
       };
       chain.forEachAtom(function (atom) {
         PDBV.gfx.sphereGeometry.makeWithUV(model.options.atomRadius, model.options.atomWidthSegments, model.options.atomHeightSegments, bufPositions, bufNormals, bufUVs, offsets, atom.vector);
+        model.interactiveObjects.push(new PDBV.gfx.SpherePlaceholder(atom.vector, model.options.atomRadius, atom));
       });
       atomGeometry.addAttribute('position', new THREE.BufferAttribute(bufPositions, 3));
       atomGeometry.addAttribute('normal', new THREE.BufferAttribute(bufNormals, 3));

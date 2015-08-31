@@ -53,11 +53,14 @@ if (PDBV.model === undefined) {
         vector3: 0
       };
       chain.forEachAtom(function (atom) {
-        PDBV.gfx.sphereGeometry.makeWithUV(PDBV.util.getAtomRadius(atom), model.options.atomWidthSegments, model.options.atomHeightSegments, bufPositions, bufNormals, bufUVs, offsets, atom.vector);
+        var radius = PDBV.util.getAtomRadius(atom);
+        PDBV.gfx.sphereGeometry.makeWithUV(radius, model.options.atomWidthSegments, model.options.atomHeightSegments, bufPositions, bufNormals, bufUVs, offsets, atom.vector);
+        model.interactiveObjects.push(new PDBV.gfx.SpherePlaceholder(atom.vector, radius, atom));
       });
       geometry.addAttribute('position', new THREE.BufferAttribute(bufPositions, 3));
       geometry.addAttribute('normal', new THREE.BufferAttribute(bufNormals, 3));
       geometry.addAttribute('uv', new THREE.BufferAttribute(bufUVs, 2));
+      geometry.computeBoundingSphere();
 
       var material = new THREE.MeshPhongMaterial({ color: 0x669966 });
       var mesh = new THREE.Mesh(geometry, material);

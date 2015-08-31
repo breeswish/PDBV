@@ -43,7 +43,11 @@ if (PDBV.model === undefined) {
           geometry.vertices.push(atom.vector, cv);
         });
       });
-      var material = new THREE.LineBasicMaterial({ color: 0xFFFFFF });
+      geometry.computeBoundingSphere();
+      var material = new THREE.LineBasicMaterial({
+        color: 0xFFFFFF,
+        fog: true,
+      });
       var lineSeries = new THREE.Line(geometry, material, THREE.LinePieces);
       model.group.add(lineSeries);
     });

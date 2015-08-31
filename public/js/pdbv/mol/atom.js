@@ -13,9 +13,10 @@ if (PDBV === undefined) {
     this.reset.apply(this, arguments);
   };
 
-  PDBV.Atom.prototype.reset = function (name, element, pos, num, tempFactor) {
+  PDBV.Atom.prototype.reset = function (uuid, name, element, pos, num, tempFactor) {
     this.residue = null;
     this.index = -1;
+    this.uuid = uuid;
     this.name = name;
     this.element = element;
     this.vector.copy(pos);

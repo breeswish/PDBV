@@ -48,9 +48,20 @@ if (PDBV === undefined) {
       model: 'BallAndStick'
     };
 
+    this.modifierKeys = {
+      control: false,
+      shift: false,
+      alt: false,
+      meta: false
+    };
+
     this.loaded = false;
     this.mol = null;
+    this.molMetaData = null;
+    this.molMap = null;
     this.gfxModels = {};
+
+    this._selected = {};
 
     this._init();
   };
@@ -80,6 +91,13 @@ if (PDBV === undefined) {
 
     // create a control
     this._createTrackballControl();
+  };
+
+  PDBV.View.prototype.forCurrentModel = function (callback) {
+    var currentModel = this.gfxModels[this.modelOptions.model];
+    if (currentModel) {
+      callback.call(this, currentModel);
+    }
   };
 
   PDBV.View.prototype._createStats = function () {
@@ -113,19 +131,19 @@ if (PDBV === undefined) {
   };
 
   PDBV.View.prototype.onControlChange = function () {
-    this.gfxModels[this.modelOptions.model].syncCamera();
+    this.forCurrentModel(function (model) {
+      model.syncCamera();
+    });
     this.render();
   };
 
   PDBV.View.prototype._render = function () {
-    var model = this.gfxModels[this.modelOptions.model];
-    if (model === undefined) {
-      return;
-    }
-    this.renderer.render(model.scene, model.camera);
-    if (this.statsOptions.enabled) {
-      this.stats.update();
-    }
+    this.forCurrentModel(function (model) {
+      this.renderer.render(model.scene, model.camera);
+      if (this.statsOptions.enabled) {
+        this.stats.update();
+      }
+    });
   };
 
   PDBV.View.prototype.render = function () {
@@ -142,15 +160,17 @@ if (PDBV === undefined) {
   };
 
   PDBV.View.prototype.load = function (mol) {
+    var self = this;
+
     // 相同的 mol 不重复载入
     if (this.mol !== null && this.mol.uuid === mol.uuid) {
       return;
     }
 
     // deactivate former model
-    if (this.gfxModels[this.modelOptions.model] !== undefined) {
-      this.gfxModels[this.modelOptions.model].deactivate();
-    }
+    this.forCurrentModel(function (model) {
+      model.deactivate();
+    });
 
     // destroy former models
     var modelName;
@@ -159,12 +179,30 @@ if (PDBV === undefined) {
       this.gfxModels[modelName] = null;
     }
 
-    this.onWindowResize();
-    this.resetCameraParameters();
+    this._selected = {};
 
     this.mol = mol;
+    this.molMetaData = {};
+    this.molMap = {};
+    this.mol.forEachAtom(function (atom) {
+      self.molMetaData[atom.uuid] = {
+        uuid: atom.uuid,
+        visible: true,
+        selected: false,
+      };
+      //if (Math.random() > 0.5) self._selected[atom.uuid] = true;
+      self.molMap[atom.uuid] = atom;
+    });
+
     this.gfxModels = {};
     this.loaded = true;
+
+    var center = this.mol.getCenter();
+
+    this.onWindowResize();
+    this.resetCameraParameters();
+    this.controls.target.copy(center);
+    this.camera.lookAt(center);
 
     this.useModel();
   };
@@ -184,8 +222,10 @@ if (PDBV === undefined) {
     }
 
     // 通知之前的 model
-    if (modelName !== this.modelOptions.model && this.gfxModels[this.modelOptions.model] !== undefined) {
-      this.gfxModels[this.modelOptions.model].deactivate();
+    if (modelName !== this.modelOptions.model) {
+      this.forCurrentModel(function (model) {
+        model.deactivate();
+      });
     }
 
     if (modelName !== undefined) {
@@ -205,6 +245,7 @@ if (PDBV === undefined) {
     this.gfxModels[modelName].syncCamera();
     this.gfxModels[modelName].syncCameraAspect();
     this.gfxModels[modelName].activate();
+    this.gfxModels[modelName].redrawSelection();
     this.render();
   };
 
@@ -215,14 +256,66 @@ if (PDBV === undefined) {
     this.camera.lookAt(lookAt);
   };
 
+  PDBV.View.prototype.onMouseDown = function () {
+    this._moved = false;
+  };
+
+  PDBV.View.prototype.onMouseMove = function () {
+    this._moved = true;
+  };
+
+  PDBV.View.prototype.onKeydown = function (ev) {
+    this._updateModifierKeys(ev);
+  };
+
+  PDBV.View.prototype.onKeyup = function (ev) {
+    this._updateModifierKeys(ev);
+  };
+
+  PDBV.View.prototype._updateModifierKeys = function (ev) {
+    this.modifierKeys.control = ev.ctrlKey;
+    this.modifierKeys.shift = ev.shiftKey;
+    this.modifierKeys.alt = ev.altKey;
+    this.modifierKeys.meta = ev.metaKey;
+  };
+
   PDBV.View.prototype.onWindowResize = function () {
     this._updateViewportSize();
     this.camera.aspect = this.width / this.height;
     this.renderer.setSize(this.width, this.height);
-    if (this.gfxModels[this.modelOptions.model]) {
-      this.gfxModels[this.modelOptions.model].syncCameraAspect();
+    this.forCurrentModel(function (model) {
+      model.syncCameraAspect();
       this.render();
+    });
+  };
+
+  PDBV.View.prototype.onCanvasClick = function (ev) {
+    if (this._moved) {
+      return;
     }
+    this.forCurrentModel(function (model) {
+      var mouse = new THREE.Vector2();
+      mouse.x = (ev.clientX / this.width) * 2 - 1;
+      mouse.y = -(ev.clientY / this.height) * 2 + 1;
+      model.onCanvasClick(mouse);
+    });
+  };
+
+  PDBV.View.prototype.onAtomClicked = function (atom) {
+    var uuid;
+    if (this.modifierKeys.control === false && this.modifierKeys.shift === false && this.modifierKeys.meta === false) {
+      // 没有按下这三个键，则清除之前的选择
+      for (uuid in this._selected) {
+        this.molMetaData[uuid].selected = false;
+      }
+      this._selected = {};
+    }
+    this.molMetaData[atom.uuid].selected = true;
+    this._selected[atom.uuid] = true;
+    this.forCurrentModel(function (model) {
+      model.redrawSelection();
+      this.render();
+    });
   };
 
 }());

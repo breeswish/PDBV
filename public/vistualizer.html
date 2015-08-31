@@ -22,6 +22,10 @@
     <script src="js/pdbv/gfx/face.js"></script>
     <script src="js/pdbv/gfx/stickGeometry.js"></script>
     <script src="js/pdbv/gfx/sphereGeometry.js"></script>
+    <script src="js/pdbv/gfx/selectionBoxGeometry.js"></script>
+    <script src="js/pdbv/gfx/placeholder.js"></script>
+    <script src="js/pdbv/gfx/spherePlaceholder.js"></script>
+    <script src="js/pdbv/gfx/stickPlaceholder.js"></script>
     <script src="js/pdbv/model/model.js"></script>
     <script src="js/pdbv/model/spaceFill.js"></script>
     <script src="js/pdbv/model/line.js"></script>
@@ -35,6 +39,7 @@
     <style>
       body {
         margin: 0;
+        overflow: hidden;
       }
 
       body, html {
@@ -61,7 +66,12 @@
       view.load(mol);
 
 
-      window.addEventListener('resize', view.onWindowResize.bind(view), false);
+      $(window).resize(view.onWindowResize.bind(view));
+      $(document).keydown(view.onKeydown.bind(view));
+      $(document).keyup(view.onKeyup.bind(view));
+      $('#stage').click(view.onCanvasClick.bind(view));
+      $('#stage').mousedown(view.onMouseDown.bind(view));
+      $('#stage').mousemove(view.onMouseMove.bind(view));
     </script>
   </body>
 </html>
