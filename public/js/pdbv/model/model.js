@@ -16,7 +16,9 @@ if (PDBV.model === undefined) {
     return;
   }
 
-  var Model = function () {};
+  var Model = function () {
+    this._selection = {};
+  };
 
   PDBV.model.Model = Model;
 
@@ -24,26 +26,34 @@ if (PDBV.model === undefined) {
     constructor: Model
   });
 
+  Model.prototype.selectBoxOptions = {
+    enabled: false
+  };
+
   Model.prototype.initView = function (view) {
     console.log('[model] %s init', this.modelName);
 
     this.view = view;
     this.group = new THREE.Object3D();
 
-    this.selection = {};
-    this.selection.positions = new Float32Array(this.view.mol.getAtomCount() * PDBV.gfx.selectionBoxGeometry.getSampleVertices() * 3);
-    this.selection.geometry = new THREE.BufferGeometry();
-    this.selection.geometry.addAttribute('position', new THREE.DynamicBufferAttribute(this.selection.positions, 3));
-    this.selection.geometry.drawcalls.push({
-      start: 0,
-      count: 0,
-      index: 0,
-    });
-    this.selection.material = new THREE.LineBasicMaterial({
-      color: 0xFFFFFF,
-      fog: true,
-    });
-    this.selection.mesh = new THREE.Line(this.selection.geometry, this.selection.material, THREE.LinePieces);
+    if (this.selectBoxOptions.enabled) {
+      this.selectBox = {};
+      this.selectBox.positions = new Float32Array(this.view.mol.getAtomCount() * PDBV.gfx.selectionBoxGeometry.getSampleVertices() * 3);
+      this.selectBox.geometry = new THREE.BufferGeometry();
+      this.selectBox.geometry.addAttribute('position', new THREE.DynamicBufferAttribute(this.selectBox.positions, 3));
+      this.selectBox.geometry.drawcalls.push({
+        start: 0,
+        count: 0,
+        index: 0,
+      });
+      this.selectBox.material = new THREE.LineBasicMaterial({
+        color: 0xFFFFFF,
+        fog: true,
+      });
+      this.selectBox.mesh = new THREE.Line(this.selectBox.geometry, this.selectBox.material, THREE.LinePieces);
+      this.selectBox.mesh.renderOrder = 1;
+      this.selectBox.material.depthTest = false;
+    }
 
     this.interactiveObjects = [];
   };
@@ -59,7 +69,10 @@ if (PDBV.model === undefined) {
     this.scene.add(this.light);
     this.scene.add(this.camera);
     this.scene.add(this.group);
-    this.scene.add(this.selection.mesh);
+
+    if (this.selectBoxOptions.enabled) {
+      this.scene.add(this.selectBox.mesh);
+    }
 
     this.raycaster = new THREE.Raycaster();
 
@@ -103,21 +116,51 @@ if (PDBV.model === undefined) {
     }
   };
 
-  Model.prototype.redrawSelection = function () {
+  Model.prototype.onSelectionChange = function (ev) {
+    if (this.selectBoxOptions.enabled) {
+      this.redrawSelectBox();
+    }
+  };
+
+  Model.prototype.resetSelection = function () {
+    var ev = {
+      unselect: [],
+      select: []
+    };
+
+    // unselect all
+    var uuid;
+    for (uuid in this._selection) {
+      ev.unselect.push(uuid);
+    }
+
+    // select all
+    for (uuid in this.view._selected) {
+      ev.select.push(uuid);
+    }
+
+    this.onSelectionChange(ev);
+  };
+
+  Model.prototype.redrawSelectBox = function () {
+    if (!this.selectBoxOptions.enabled) {
+      return;
+    }
     var model = this;
     var view = this.view;
-    var uuid, atom, radius;
+    var uuid, atom, radius, width;
     var offsets = {
       vector3: 0
     };
     for (uuid in view._selected) {
       atom = view.molMap[uuid];
-      radius = 0.4;
-      PDBV.gfx.selectionBoxGeometry.makeLines(radius, radius * 0.5, model.selection.positions, offsets, atom.vector);
+      radius = model.selectBoxOptions.getSize(atom);
+      width = model.selectBoxOptions.getWidth(atom, radius);
+      PDBV.gfx.selectionBoxGeometry.makeLines(radius, width, model.selectBox.positions, offsets, atom.vector);
     }
-    model.selection.geometry.drawcalls[0].count = offsets.vector3 / 3;
-    model.selection.geometry.attributes.position.needsUpdate = true;
-    model.selection.geometry.computeBoundingSphere();
+    model.selectBox.geometry.drawcalls[0].count = offsets.vector3 / 3;
+    model.selectBox.geometry.attributes.position.needsUpdate = true;
+    model.selectBox.geometry.computeBoundingSphere();
   };
 
   // 当开始使用这个模型渲染时

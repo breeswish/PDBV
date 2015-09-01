@@ -17,6 +17,7 @@ if (PDBV.model === undefined) {
   }
 
   var BallAndStickModel = function () {
+    PDBV.model.Model.call(this);
     this.options = {
       atomWidthSegments: 10,
       atomHeightSegments: 10,
@@ -24,7 +25,6 @@ if (PDBV.model === undefined) {
       stickRadius: 0.3,
       stickSegments: 8
     };
-    PDBV.model.Model.call(this);
   };
 
   PDBV.model.BallAndStick = BallAndStickModel;
@@ -34,6 +34,16 @@ if (PDBV.model === undefined) {
   });
 
   BallAndStickModel.prototype.modelName = 'BallAndStick';
+
+  BallAndStickModel.prototype.selectBoxOptions = {
+    enabled: true,
+    getSize: function (atom) {
+      return 0.3;
+    },
+    getWidth: function (atom, size) {
+      return size * 0.5;
+    },
+  };
 
   BallAndStickModel.prototype.initGeometries = function () {
     var model = this;

@@ -245,7 +245,7 @@ if (PDBV === undefined) {
     this.gfxModels[modelName].syncCamera();
     this.gfxModels[modelName].syncCameraAspect();
     this.gfxModels[modelName].activate();
-    this.gfxModels[modelName].redrawSelection();
+    this.gfxModels[modelName].resetSelection();
     this.render();
   };
 
@@ -303,17 +303,23 @@ if (PDBV === undefined) {
 
   PDBV.View.prototype.onAtomClicked = function (atom) {
     var uuid;
+    var selectionChangeEvent = {
+      unselect: [],
+      select: []
+    };
     if (this.modifierKeys.control === false && this.modifierKeys.shift === false && this.modifierKeys.meta === false) {
       // 没有按下这三个键，则清除之前的选择
       for (uuid in this._selected) {
+        selectionChangeEvent.unselect.push(uuid);
         this.molMetaData[uuid].selected = false;
       }
       this._selected = {};
     }
+    selectionChangeEvent.select.push(atom.uuid);
     this.molMetaData[atom.uuid].selected = true;
     this._selected[atom.uuid] = true;
     this.forCurrentModel(function (model) {
-      model.redrawSelection();
+      model.onSelectionChange(selectionChangeEvent);
       this.render();
     });
   };

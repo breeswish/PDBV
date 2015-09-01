@@ -17,11 +17,11 @@ if (PDBV.model === undefined) {
   }
 
   var SpaceFillModel = function () {
+    PDBV.model.Model.call(this);
     this.options = {
       atomWidthSegments: 10,
       atomHeightSegments: 10
     };
-    PDBV.model.Model.call(this);
   };
 
   PDBV.model.SpaceFill = SpaceFillModel;
@@ -31,6 +31,16 @@ if (PDBV.model === undefined) {
   });
 
   SpaceFillModel.prototype.modelName = 'SpaceFill';
+
+  SpaceFillModel.prototype.selectBoxOptions = {
+    enabled: true,
+    getSize: function (atom) {
+      return PDBV.util.getAtomRadius(atom);
+    },
+    getWidth: function (atom, size) {
+      return size * 0.5;
+    },
+  };
 
   SpaceFillModel.prototype.initGeometries = function () {
     var model = this;
