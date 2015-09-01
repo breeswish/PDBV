@@ -256,7 +256,8 @@ if (PDBV === undefined) {
     this.camera.lookAt(lookAt);
   };
 
-  PDBV.View.prototype.onMouseDown = function () {
+  PDBV.View.prototype.onMouseDown = function (ev) {
+    this._updateModifierKeys(ev);
     this._moved = false;
   };
 
@@ -290,6 +291,7 @@ if (PDBV === undefined) {
   };
 
   PDBV.View.prototype.onCanvasClick = function (ev) {
+    this._updateModifierKeys(ev);
     if (this._moved) {
       return;
     }
