@@ -29,6 +29,17 @@ var stylus = require('stylus');
 var autoprefixer = require('autoprefixer-stylus');
 
 var app = express();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
+
+var sessionMiddleware = session({
+  resave: true,
+  saveUninitialized: true,
+  secret: config.secret,
+  store: new MongoStore({ url: config.database.url, autoReconnect: true })
+});
+
+// Express
 
 // Template
 app.engine('html', swig.renderFile);
@@ -44,12 +55,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(methodOverride());
 app.use(cookieParser());
-app.use(session({
-  resave: true,
-  saveUninitialized: true,
-  secret: config.secret,
-  store: new MongoStore({ url: config.database.url, autoReconnect: true })
-}));
+app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
@@ -76,7 +82,39 @@ app.use(require('app/routes'));
 // Error handler
 app.use(errorHandler());
 
+
+// Socket.io
+
+var status = {
+  model: null
+};
+
+var uuid = require('node-uuid');
+
+io.use(function (socket, next) {
+  sessionMiddleware(socket.request, socket.request.res, next);
+});
+
+io.sockets.on('connection', function (socket) {
+  // not logined user
+  if (socket.request.session.passport.user === undefined) {
+    return;
+  }
+  var id = uuid.v4();
+  socket.uuid = id;
+  socket.emit('initialize', {
+    uuid: id,
+    status: status
+  });
+  socket.on('updateStatus', function (data) {
+    console.log(data);
+    status[data.key] = data.value;
+    socket.broadcast.emit('statusUpdated', data);
+  });
+});
+
+
 // Start
-app.listen(app.get('port'), function () {
+server.listen(app.get('port'), function () {
   console.log('Express server listening on port %d in %s mode', app.get('port'), app.get('env'));
 });

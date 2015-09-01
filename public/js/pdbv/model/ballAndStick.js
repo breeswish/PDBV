@@ -73,7 +73,7 @@ if (PDBV.model === undefined) {
       atomGeometry.addAttribute('uv', new THREE.BufferAttribute(bufUVs, 2));
       atomGeometry.computeBoundingSphere();
 
-      var material = new THREE.MeshPhongMaterial({color: 0x669966 });
+      var material = new THREE.MeshLambertMaterial({color: 0x669966 });
       var mesh = new THREE.Mesh(atomGeometry, material);
       model.group.add(mesh);
     });
@@ -102,7 +102,7 @@ if (PDBV.model === undefined) {
       stickGeometry.addAttribute('uv', new THREE.BufferAttribute(bufUVs, 2));
       stickGeometry.computeBoundingSphere();
 
-      var material = new THREE.MeshPhongMaterial({ color: 0x669966 });
+      var material = new THREE.MeshLambertMaterial({ color: 0x669966 });
       var mesh = new THREE.Mesh(stickGeometry, material);
       model.group.add(mesh);
     });

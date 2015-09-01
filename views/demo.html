@@ -1,0 +1,132 @@
+{% extends "extend.html" %}
+{% block title %}Demo{% endblock %}
+{% block stylesheets %}
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+
+      body, html {
+        width: 100%;
+        height: 100%;
+      }
+
+      #stage {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      #control {
+        position: absolute;
+        right: 0;
+        top: 0;
+      }
+    </style>
+{% endblock %}
+{% block javascripts %}
+    <script src="/lib/lodash/lodash.js"></script>
+    <script src="/lib/jquery/jquery-2.1.4.min.js"></script>
+    <script src="/lib/three/three.min.js"></script>
+    <script src="/lib/three/TrackballControls.js"></script>
+    <script src="/lib/three/stats.js"></script>
+
+    <script src="/data/4LDB.js"></script>
+
+    <script src="/js/pdbv/util.js"></script>
+    <script src="/js/pdbv/view.js"></script>
+    <script src="/js/pdbv/loader.js"></script>
+    <script src="/js/pdbv/constant/atomRadius.js"></script>
+    <script src="/js/pdbv/constant/elementCovalentRadius.js"></script>
+    <script src="/js/pdbv/gfx/virtualCamera.js"></script>
+    <script src="/js/pdbv/gfx/triangle.js"></script>
+    <script src="/js/pdbv/gfx/face.js"></script>
+    <script src="/js/pdbv/gfx/stickGeometry.js"></script>
+    <script src="/js/pdbv/gfx/sphereGeometry.js"></script>
+    <script src="/js/pdbv/gfx/selectionBoxGeometry.js"></script>
+    <script src="/js/pdbv/gfx/placeholder.js"></script>
+    <script src="/js/pdbv/gfx/spherePlaceholder.js"></script>
+    <script src="/js/pdbv/gfx/stickPlaceholder.js"></script>
+    <script src="/js/pdbv/model/model.js"></script>
+    <script src="/js/pdbv/model/spaceFill.js"></script>
+    <script src="/js/pdbv/model/line.js"></script>
+    <script src="/js/pdbv/model/ballAndStick.js"></script>
+    <script src="/js/pdbv/model/cartoon.js"></script>
+    <script src="/js/pdbv/mol/atom.js"></script>
+    <script src="/js/pdbv/mol/residue.js"></script>
+    <script src="/js/pdbv/mol/chain.js"></script>
+    <script src="/js/pdbv/mol/mol.js"></script>
+    
+    <script src="/socket.io/socket.io.js"></script>
+{% endblock %}
+{% block body %}
+    <div id="stage"></div>
+    <div id="control">
+      <select id="model">
+        <option value="SpaceFill">space fill</option>
+        <option value="BallAndStick">ball and stick</option>
+        <option value="Line">line</option>
+      </select>
+    </div>
+    <script>
+      var view = new PDBV.View($('#stage')[0]);
+      view.start();
+
+      view.addEventListener('molLoaded', function (ev) {
+        updateStatus('mol', ev.mol.uuid);
+      });
+
+      view.addEventListener('controlsChanged', function (ev) {
+        updateStatus('controls', ev.param);
+      });
+
+      var updateStatus = _.throttle(function(key, value) {
+        socket.emit('updateStatus', {
+          key: key,
+          value: value
+        });
+      }, 20);
+
+      var socket = io.connect();
+      var initialized = false;
+
+      socket.on('initialize', function (data) {
+        socket.uuid = data.uuid;
+        if (data.status.mol) {
+          var mol = PDBV.loader.load();
+          view._load(mol, data.status);
+        } else {
+          var mol = PDBV.loader.load();
+          view.load(mol, data.status);
+        }
+        initialized = true;
+      });
+
+      socket.on('statusUpdated', function (data) {
+        if (data.key === 'controls') {
+          view.resetControlsParameters(data.value);
+          return;
+        }
+
+        if (data.key === 'model') {
+          view.useModel(data.value);
+        }
+      });
+
+      $('#model').change(function () {
+        var model = this.value;
+        view.useModel(model);
+        updateStatus('model', model);
+      });
+
+      $(window).resize(view.onWindowResize.bind(view));
+      $(document).keydown(view.onKeydown.bind(view));
+      $(document).keyup(view.onKeyup.bind(view));
+      $('#stage').click(view.onCanvasClick.bind(view));
+      $('#stage').mousedown(view.onMouseDown.bind(view));
+      $('#stage').mousemove(view.onMouseMove.bind(view));
+    </script>
+{% endblock %}

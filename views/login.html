@@ -1,6 +1,10 @@
 {% extends "extend.html" %}
 {% block title %}Login{% endblock %}
 {% block body %}
+<script src="/socket.io/socket.io.js"></script>
+    <script>
+      var socket = io.connect();
+    </script>
 <div class="dialog--login">
   <h1>PDB Visualizer</h1>
   <form action="/login" method="POST">

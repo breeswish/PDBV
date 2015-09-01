@@ -9,4 +9,12 @@ router.get('/', function (req, res) {
   res.redirect('/login');
 });
 
+router.get('/dashboard', function (req, res) {
+  res.redirect('/demo');
+});
+
+router.get('/demo', function (req, res) {
+  res.render('demo');
+});
+
 module.exports = router;

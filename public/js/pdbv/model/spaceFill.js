@@ -72,7 +72,7 @@ if (PDBV.model === undefined) {
       geometry.addAttribute('uv', new THREE.BufferAttribute(bufUVs, 2));
       geometry.computeBoundingSphere();
 
-      var material = new THREE.MeshPhongMaterial({ color: 0x669966 });
+      var material = new THREE.MeshLambertMaterial({ color: 0x669966 });
       var mesh = new THREE.Mesh(geometry, material);
 
       model.group.add(mesh);
