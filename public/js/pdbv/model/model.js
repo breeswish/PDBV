@@ -90,15 +90,16 @@ if (PDBV.model === undefined) {
 
   Model.prototype.syncCamera = function () {
     var virtualCamera = this.view.camera;
+    var distance = virtualCamera._lookAt.distanceTo(this.camera.position);
     this.camera.up.copy(virtualCamera.up);
-    this.camera.near = virtualCamera.near;
-    this.camera.far = virtualCamera.far;
+    this.camera.near = Math.max(distance - virtualCamera.offset, 0.01);
+    this.camera.far = distance + virtualCamera.offset;
+    this.camera.updateProjectionMatrix();
     this.camera.position.copy(virtualCamera.position);
     this.camera.lookAt(virtualCamera._lookAt);
     this.camera.updateMatrixWorld();
     this.light.position.copy(virtualCamera.position);
     if (this.fogOptions.enabled) {
-      var distance = virtualCamera._lookAt.distanceTo(this.camera.position);
       this.scene.fog.near = this.fogOptions.near + distance;
       this.scene.fog.far = this.fogOptions.far + distance;
     }

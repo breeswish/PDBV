@@ -24,8 +24,6 @@ if (PDBV === undefined) {
     };
 
     this.cameraOptions = {
-      near: 1,
-      far: 10000,
       position: new THREE.Vector3(0, 100, 0),
       lookAt: new THREE.Vector3(0, 0, 0)
     };
@@ -38,13 +36,6 @@ if (PDBV === undefined) {
 
     this.modelOptions = {
       model: 'BallAndStick'
-    };
-
-    this.modifierKeys = {
-      control: false,
-      shift: false,
-      alt: false,
-      meta: false
     };
 
     this.loaded = false;
@@ -72,9 +63,6 @@ if (PDBV === undefined) {
     this._updateViewportSize();
     this._attachListeners();
 
-    var viewSelection = new PDBV.ViewSelection(this);
-    viewSelection.attachListeners();
-
     // create stat control
     if (this.statsOptions.enabled) {
       this._createStats();
@@ -92,6 +80,14 @@ if (PDBV === undefined) {
 
     // create a control
     this._createTrackballControl();
+
+    // selection related
+    var viewSelection = new PDBV.ViewSelection(this);
+    viewSelection.attachListeners();
+
+    // slice related
+    var viewSlice = new PDBV.ViewSlice(this);
+    viewSlice.attachListeners();
   };
 
   PDBV.View.prototype._attachListeners = function () {
@@ -124,8 +120,6 @@ if (PDBV === undefined) {
 
   PDBV.View.prototype.resetCameraParameters = function () {
     this.camera.up.set(0, 0, 1);
-    this.camera.near = this.cameraOptions.near;
-    this.camera.far = this.cameraOptions.far;
     this.camera.position.copy(this.cameraOptions.position);
     this.camera.lookAt(this.cameraOptions.lookAt);
   };
@@ -297,13 +291,6 @@ if (PDBV === undefined) {
     this.gfxModels[modelName].activate();
     this.gfxModels[modelName].resetSelection();
     this.render();
-  };
-
-  PDBV.View.prototype.setCameraParameters = function (near, far, pos, lookAt) {
-    this.camera.near = near;
-    this.camera.far = far;
-    this.camera.position.copy(pos);
-    this.camera.lookAt(lookAt);
   };
 
   PDBV.View.prototype.onWindowResize = function () {

@@ -1,4 +1,4 @@
-/*global THREE, Stats, window, EventEmitter */
+/*global THREE */
 
 var PDBV;
 
@@ -14,6 +14,12 @@ if (PDBV === undefined) {
 
   PDBV.ViewSelection = function (view) {
     this.view = view;
+    this.modifierKeys = {
+      control: false,
+      shift: false,
+      alt: false,
+      meta: false
+    };
   };
 
   PDBV.ViewSelection.prototype.attachListeners = function () {
