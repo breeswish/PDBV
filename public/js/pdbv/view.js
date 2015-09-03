@@ -70,6 +70,10 @@ if (PDBV === undefined) {
 
   PDBV.View.prototype._init = function () {
     this._updateViewportSize();
+    this._attachListeners();
+
+    var viewSelection = new PDBV.ViewSelection(this);
+    viewSelection.attachListeners();
 
     // create stat control
     if (this.statsOptions.enabled) {
@@ -88,6 +92,10 @@ if (PDBV === undefined) {
 
     // create a control
     this._createTrackballControl();
+  };
+
+  PDBV.View.prototype._attachListeners = function () {
+    window.addEventListener('resize', this.onWindowResize.bind(this));
   };
 
   PDBV.View.prototype.forCurrentModel = function (callback) {
@@ -298,72 +306,12 @@ if (PDBV === undefined) {
     this.camera.lookAt(lookAt);
   };
 
-  PDBV.View.prototype.onMouseDown = function (ev) {
-    this._updateModifierKeys(ev);
-    this._moved = false;
-  };
-
-  PDBV.View.prototype.onMouseMove = function () {
-    this._moved = true;
-  };
-
-  PDBV.View.prototype.onKeydown = function (ev) {
-    this._updateModifierKeys(ev);
-  };
-
-  PDBV.View.prototype.onKeyup = function (ev) {
-    this._updateModifierKeys(ev);
-  };
-
-  PDBV.View.prototype._updateModifierKeys = function (ev) {
-    this.modifierKeys.control = ev.ctrlKey;
-    this.modifierKeys.shift = ev.shiftKey;
-    this.modifierKeys.alt = ev.altKey;
-    this.modifierKeys.meta = ev.metaKey;
-  };
-
   PDBV.View.prototype.onWindowResize = function () {
     this._updateViewportSize();
     this.camera.aspect = this.width / this.height;
     this.renderer.setSize(this.width, this.height);
     this.forCurrentModel(function (model) {
       model.syncCameraAspect();
-      this.render();
-    });
-  };
-
-  PDBV.View.prototype.onCanvasClick = function (ev) {
-    this._updateModifierKeys(ev);
-    if (this._moved) {
-      return;
-    }
-    this.forCurrentModel(function (model) {
-      var mouse = new THREE.Vector2();
-      mouse.x = (ev.clientX / this.width) * 2 - 1;
-      mouse.y = -(ev.clientY / this.height) * 2 + 1;
-      model.onCanvasClick(mouse);
-    });
-  };
-
-  PDBV.View.prototype.onAtomClicked = function (atom) {
-    var uuid;
-    var selectionChangeEvent = {
-      unselect: [],
-      select: []
-    };
-    if (this.modifierKeys.control === false && this.modifierKeys.shift === false && this.modifierKeys.meta === false) {
-      // 没有按下这三个键，则清除之前的选择
-      for (uuid in this._selected) {
-        selectionChangeEvent.unselect.push(uuid);
-        this.molMetaData[uuid].selected = false;
-      }
-      this._selected = {};
-    }
-    selectionChangeEvent.select.push(atom.uuid);
-    this.molMetaData[atom.uuid].selected = true;
-    this._selected[atom.uuid] = true;
-    this.forCurrentModel(function (model) {
-      model.onSelectionChange(selectionChangeEvent);
       this.render();
     });
   };

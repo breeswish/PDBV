@@ -39,6 +39,7 @@
 
     <script src="/js/pdbv/util.js"></script>
     <script src="/js/pdbv/view.js"></script>
+    <script src="/js/pdbv/view.selection.js"></script>
     <script src="/js/pdbv/loader.js"></script>
     <script src="/js/pdbv/constant/atomRadius.js"></script>
     <script src="/js/pdbv/constant/elementCovalentRadius.js"></script>
@@ -75,8 +76,6 @@
     <script>
       var view = new PDBV.View($('#stage')[0]);
       view.start();
-
-      $(window).resize(view.onWindowResize.bind(view));
 
       var socket = io.connect();
       var initialized = false;
@@ -141,12 +140,5 @@
         view.useModel(model);
       });
       
-      $(document.body).keydown(view.onKeydown.bind(view));
-      $(document.body).keyup(view.onKeyup.bind(view));
-      $('#stage').click(view.onCanvasClick.bind(view));
-      $('#stage').mousedown(view.onMouseDown.bind(view));
-      $('#stage').mousemove(view.onMouseMove.bind(view));
-
-
     </script>
 {% endblock %}
