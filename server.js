@@ -86,7 +86,8 @@ app.use(errorHandler());
 // Socket.io
 
 var status = {
-  model: null
+  model: null,
+  controls: null,
 };
 
 var uuid = require('node-uuid');
@@ -106,10 +107,10 @@ io.sockets.on('connection', function (socket) {
     uuid: id,
     status: status
   });
-  socket.on('updateStatus', function (data) {
-    console.log(data);
+  socket.on('action/updateStatus', function (data) {
+    console.log(new Date().toUTCString(), data);
     status[data.key] = data.value;
-    socket.broadcast.emit('statusUpdated', data);
+    socket.broadcast.emit('event/statusUpdated', data);
   });
 });
 

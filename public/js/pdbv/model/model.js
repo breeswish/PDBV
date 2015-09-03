@@ -1,4 +1,4 @@
-/*global THREE, Float32Array */
+/*global THREE, Float32Array, EventEmitter */
 
 var PDBV;
 
@@ -22,7 +22,7 @@ if (PDBV.model === undefined) {
 
   PDBV.model.Model = Model;
 
-  Model.prototype = _.create(THREE.EventDispatcher.prototype, {
+  Model.prototype = _.create(EventEmitter.prototype, {
     constructor: Model
   });
 

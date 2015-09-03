@@ -33,6 +33,7 @@
     <script src="/lib/three/three.min.js"></script>
     <script src="/lib/three/TrackballControls.js"></script>
     <script src="/lib/three/stats.js"></script>
+    <script src="/lib/eventemitter/ee.js"></script>
 
     <script src="/data/4LDB.js"></script>
 
@@ -75,58 +76,77 @@
       var view = new PDBV.View($('#stage')[0]);
       view.start();
 
-      view.addEventListener('molLoaded', function (ev) {
-        updateStatus('mol', ev.mol.uuid);
-      });
-
-      view.addEventListener('controlsChanged', function (ev) {
-        updateStatus('controls', ev.param);
-      });
-
-      var updateStatus = _.throttle(function(key, value) {
-        socket.emit('updateStatus', {
-          key: key,
-          value: value
-        });
-      }, 20);
+      $(window).resize(view.onWindowResize.bind(view));
 
       var socket = io.connect();
       var initialized = false;
+      var inStatusUpdateProgress = false;
 
       socket.on('initialize', function (data) {
         socket.uuid = data.uuid;
-        if (data.status.mol) {
-          var mol = PDBV.loader.load();
-          view._load(mol, data.status);
-        } else {
-          var mol = PDBV.loader.load();
-          view.load(mol, data.status);
+        if (data.status.loaded) {
+          inStatusUpdateProgress = true;
         }
+        var mol = PDBV.loader.load(data.status.pdb);
+        view.load(mol, data.status);
         initialized = true;
+        inStatusUpdateProgress = false;
       });
 
-      socket.on('statusUpdated', function (data) {
-        if (data.key === 'controls') {
-          view.resetControlsParameters(data.value);
+      // 收到服务端的状态更新通知
+      socket.on('event/statusUpdated', function (data) {
+        if (!initialized) {
           return;
         }
+        inStatusUpdateProgress = true;
+        if (data.scope === 'view') {
+          view.onServerStatusUpdated(data.key, data.value);
+        } else if (data.scope === 'controller') {
 
-        if (data.key === 'model') {
-          view.useModel(data.value);
         }
+        inStatusUpdateProgress = false;
+      });
+
+      /**
+       * 给服务端发送消息通知其他客户端更新相关状态
+       */
+      var broadcastUpdateStatus = function (ev) {
+        if (!initialized) {
+          return;
+        }
+        socket.emit('action/updateStatus', ev);
+      };
+
+      // 监听各个事件
+      var syncEvents = ['pdbChanged', 'controlsChanged', 'modelChanged'];
+      syncEvents.forEach(function (eventName) {
+        // 每个事件 20ms 内只会触发一次 updateStatus
+        var func = _.throttle(function (ev) {
+          broadcastUpdateStatus(ev);
+        }, 50);
+        view.addListener(eventName, function (data, scope) {
+          if (inStatusUpdateProgress === true) {
+            return;
+          }
+          func({
+            key: eventName,
+            scope: scope,
+            value: data
+          });
+        });
       });
 
       $('#model').change(function () {
         var model = this.value;
         view.useModel(model);
-        updateStatus('model', model);
       });
-
-      $(window).resize(view.onWindowResize.bind(view));
-      $(document).keydown(view.onKeydown.bind(view));
-      $(document).keyup(view.onKeyup.bind(view));
+      
+      $(document.body).keydown(view.onKeydown.bind(view));
+      $(document.body).keyup(view.onKeyup.bind(view));
       $('#stage').click(view.onCanvasClick.bind(view));
       $('#stage').mousedown(view.onMouseDown.bind(view));
       $('#stage').mousemove(view.onMouseMove.bind(view));
+
+
     </script>
 {% endblock %}

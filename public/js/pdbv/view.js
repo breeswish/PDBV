@@ -1,4 +1,4 @@
-/*global THREE, Stats, window */
+/*global THREE, Stats, window, EventEmitter */
 
 var PDBV;
 
@@ -29,14 +29,6 @@ if (PDBV === undefined) {
       position: new THREE.Vector3(0, 100, 0),
       lookAt: new THREE.Vector3(0, 0, 0)
     };
-/*
-    this.controlOptions = {
-      rotateSpeed: 1.0,
-      zoomSpeed: 1.2,
-      panSpeed: 0.8,
-      staticMoving: true
-    };
-*/
 
     this.fogOptions = {
       near: -5,
@@ -67,7 +59,7 @@ if (PDBV === undefined) {
     this._init();
   };
 
-  PDBV.View.prototype = _.create(THREE.EventDispatcher.prototype, {
+  PDBV.View.prototype = _.create(EventEmitter.prototype, {
     constructor: PDBV.View
   });
 
@@ -140,47 +132,37 @@ if (PDBV === undefined) {
   };
 
   PDBV.View.prototype.onControlsChange = function () {
-    if (this._controlReset) {
-      this._controlReset = false;
-    } else {
-      var parameters = {};
-      parameters.target = {
-        x: this.controls.target.x,
-        y: this.controls.target.y,
-        z: this.controls.target.z,
-      };
-      parameters.position = {
-        x: this.camera.position.x,
-        y: this.camera.position.y,
-        z: this.camera.position.z,
-      };
-      parameters.up = {
-        x: this.camera.up.x,
-        y: this.camera.up.y,
-        z: this.camera.up.z,
-      };
-      this.dispatchEvent({
-        type: 'controlsChanged',
-        param: parameters
-      });
-    }
+    var data = {};
+    data.target = {
+      x: this.controls.target.x,
+      y: this.controls.target.y,
+      z: this.controls.target.z,
+    };
+    data.position = {
+      x: this.camera.position.x,
+      y: this.camera.position.y,
+      z: this.camera.position.z,
+    };
+    data.up = {
+      x: this.camera.up.x,
+      y: this.camera.up.y,
+      z: this.camera.up.z,
+    };
+    this.emitEvent('controlsChanged', [data, 'view']);
+
     this.forCurrentModel(function (model) {
       model.syncCamera();
     });
     this.render();
   };
 
-  PDBV.View.prototype._render = function () {
+  PDBV.View.prototype.render = function () {
     this.forCurrentModel(function (model) {
       this.renderer.render(model.scene, model.camera);
       if (this.statsOptions.enabled) {
         this.stats.update();
       }
     });
-  };
-
-  PDBV.View.prototype.render = function () {
-    this._render();
   };
 
   PDBV.View.prototype.start = function () {
@@ -192,7 +174,7 @@ if (PDBV === undefined) {
     this.controls.update(this.clock.getDelta());
   };
 
-  PDBV.View.prototype._load = function (mol, status) {
+  PDBV.View.prototype.load = function (mol, status) {
     var self = this;
 
     // 相同的 mol 不重复载入
@@ -223,7 +205,6 @@ if (PDBV === undefined) {
         visible: true,
         selected: false,
       };
-      //if (Math.random() > 0.5) self._selected[atom.uuid] = true;
       self.molMap[atom.uuid] = atom;
     });
 
@@ -234,21 +215,11 @@ if (PDBV === undefined) {
     this.resetCameraParameters();
     this.resetControlsParameters(status.controls);
 
-    this.useModel();
-  };
-
-  PDBV.View.prototype.load = function (mol, status) {
-    this._load(mol, status);
-    this.dispatchEvent({
-      type: 'molLoaded',
-      mol: mol
-    });
+    this.useModel(status.model);
   };
 
   PDBV.View.prototype.resetControlsParameters = function (parameters) {
-    var useDefault = false;
     if (parameters === null || parameters === undefined) {
-      useDefault = true;
       parameters = {};
     }
 
@@ -275,18 +246,6 @@ if (PDBV === undefined) {
     this.controls.target0.copy(parameters.target);
     this.controls.position0.copy(parameters.position);
     this.controls.up0.copy(parameters.up);
-    this._resetControls();
-
-    if (useDefault) {
-      this.dispatchEvent({
-        type: 'controlsChanged',
-        param: parameters
-      });
-    }
-  };
-
-  PDBV.View.prototype._resetControls = function () {
-    this._controlReset = true;
     this.controls.reset();
   };
 
@@ -296,7 +255,7 @@ if (PDBV === undefined) {
       return;
     }
 
-    if (modelName === undefined) {
+    if (modelName === null || modelName === undefined) {
       modelName = this.modelOptions.model;
     }
 
@@ -312,7 +271,6 @@ if (PDBV === undefined) {
       });
     }
 
-    // 更新 modelOptions.model 为当前 modelName
     this.currentModel = modelName;
 
     if (this.gfxModels[modelName] === undefined) {
@@ -323,6 +281,8 @@ if (PDBV === undefined) {
       this.gfxModels[modelName].initGeometries();
       console.timeEnd('construct model: ' + modelName);
     }
+
+    this.emitEvent('modelChanged', [modelName, 'view']);
 
     this.gfxModels[modelName].syncCamera();
     this.gfxModels[modelName].syncCameraAspect();
@@ -406,6 +366,14 @@ if (PDBV === undefined) {
       model.onSelectionChange(selectionChangeEvent);
       this.render();
     });
+  };
+
+  PDBV.View.prototype.onServerStatusUpdated = function (key, val) {
+    if (key === 'controlsChanged') {
+      this.resetControlsParameters(val);
+    } else if (key === 'modelChanged') {
+      this.useModel(val);
+    }
   };
 
 }());
