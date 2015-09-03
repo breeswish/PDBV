@@ -85,12 +85,15 @@ if (PDBV.model === undefined) {
   Model.prototype.syncCameraAspect = function () {
     var virtualCamera = this.view.camera;
     this.camera.aspect = virtualCamera.aspect;
-    this.camera.updateProjectionMatrix();
+    if (this._aspect !== this.camera.aspect) {
+      this.camera.updateProjectionMatrix();
+      this._aspect = this.camera.aspect;
+    }
   };
 
   Model.prototype.syncCamera = function () {
     var virtualCamera = this.view.camera;
-    var distance = virtualCamera._lookAt.distanceTo(this.camera.position);
+    var distance = virtualCamera._lookAt.distanceTo(virtualCamera.position);
     this.camera.up.copy(virtualCamera.up);
     this.camera.near = Math.max(distance - virtualCamera.offset, 0.01);
     this.camera.far = Math.min(distance + virtualCamera.offset, 5000); // TODO: dynamic calculate
