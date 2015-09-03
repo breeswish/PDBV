@@ -93,8 +93,12 @@ if (PDBV.model === undefined) {
     var distance = virtualCamera._lookAt.distanceTo(this.camera.position);
     this.camera.up.copy(virtualCamera.up);
     this.camera.near = Math.max(distance - virtualCamera.offset, 0.01);
-    this.camera.far = distance + virtualCamera.offset;
-    this.camera.updateProjectionMatrix();
+    this.camera.far = Math.min(distance + virtualCamera.offset, 5000); // TODO: dynamic calculate
+    if (this._near !== this.camera.near || this._far !== this.camera.far) {
+      this.camera.updateProjectionMatrix();
+      this._near = this.camera.near;
+      this._far = this.camera.far;
+    }
     this.camera.position.copy(virtualCamera.position);
     this.camera.lookAt(virtualCamera._lookAt);
     this.camera.updateMatrixWorld();
