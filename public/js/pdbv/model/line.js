@@ -41,9 +41,13 @@ if (PDBV.model === undefined) {
       chain.forEachAtom(function (atom) {
         connections[atom.num].forEach(function (cv) {
           geometry.vertices.push(atom.vector, cv);
-          var color = new THREE.Color(0xEFFFFE);
-          color.setRGB(view.molMetaData[atom.uuid].color[0],view.molMetaData[atom.uuid].color[1],view.molMetaData[atom.uuid].color[2]);
-          colors.push(color);
+          var color1 = new THREE.Color(0xEFFFFE);
+          color1.setRGB(view.molMetaData[atom.uuid].color[0],view.molMetaData[atom.uuid].color[1],view.molMetaData[atom.uuid].color[2]);
+          colors.push(color1);
+          var color2 = new THREE.Color(0xEFFFFE);
+          color2.setRGB(view.molMetaData[atom.uuid].color[0],view.molMetaData[atom.uuid].color[1],view.molMetaData[atom.uuid].color[2]);
+          colors.push(color2);
+
         });
       });
       console.log(colors);
