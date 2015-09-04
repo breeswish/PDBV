@@ -1,4 +1,4 @@
-/*global THREE, Stats, window, EventEmitter */
+/*global THREE, Stats, window, EventEmitter, Float32Array */
 
 var PDBV;
 
@@ -46,6 +46,8 @@ if (PDBV === undefined) {
     this.mol = null;
     this.molMetaData = null;
     this.molMap = null;
+    this.molRadius = null;
+    this.molCenter = null;
     this.currentModel = null;
     this.currentColoring = null;
     this.gfxModels = {};
@@ -87,12 +89,12 @@ if (PDBV === undefined) {
     this._createTrackballControl();
 
     // selection related
-    var viewSelection = new PDBV.ViewSelection(this);
-    viewSelection.attachListeners();
+    this.viewSelection = new PDBV.ViewSelection(this);
+    this.viewSelection.attachListeners();
 
     // slice related
-    var viewSlice = new PDBV.ViewSlice(this);
-    viewSlice.attachListeners();
+    this.viewSlice = new PDBV.ViewSlice(this);
+    this.viewSlice.attachListeners();
   };
 
   PDBV.View.prototype._attachListeners = function () {
@@ -215,9 +217,13 @@ if (PDBV === undefined) {
       };
       self.molMap[atom.uuid] = atom;
     });
+    this.molCenter = mol.getCenter();
+    this.molRadius = mol.getRadius();
 
     this.gfxModels = {};
     this.loaded = true;
+
+    this.viewSlice.updateOffset();
 
     this.onWindowResize();
     this.resetCameraParameters();
@@ -235,11 +241,10 @@ if (PDBV === undefined) {
 
     // target, position, up
     if (parameters.target === undefined) {
-      var center = this.mol.getCenter();
       parameters.target = {
-        x: center.x,
-        y: center.y,
-        z: center.z,
+        x: this.molCenter.x,
+        y: this.molCenter.y,
+        z: this.molCenter.z,
       };
       parameters.position = {
         x: this.cameraOptions.position.x,

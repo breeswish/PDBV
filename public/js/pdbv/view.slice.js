@@ -8,7 +8,6 @@ if (PDBV === undefined) {
 
 (function () {
 
-  var MAX_DISTANCE = 5000;
   var SCALE = Math.pow(0.95, 1.0);
 
   if (PDBV.ViewSlice !== undefined) {
@@ -18,7 +17,6 @@ if (PDBV === undefined) {
   PDBV.ViewSlice = function (view) {
     this.view = view;
     this.visiblePercent = 1.0;
-    this.update();
   };
 
   PDBV.ViewSlice.prototype.attachListeners = function () {
@@ -61,8 +59,12 @@ if (PDBV === undefined) {
     }
   };
 
+  PDBV.ViewSlice.prototype.updateOffset = function () {
+    this.view.camera.offset = this.view.molRadius * 1.2 * this.visiblePercent;
+  };
+
   PDBV.ViewSlice.prototype.update = function () {
-    this.view.camera.offset = MAX_DISTANCE * this.visiblePercent;
+    this.updateOffset();
     this.view.forCurrentModel(function (model) {
       model.syncCamera();
     });
