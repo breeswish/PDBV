@@ -68,6 +68,7 @@ if (PDBV === undefined) {
   };
 
   PDBV.ViewSelection.prototype.onAtomClicked = function (atom) {
+    var view = this.view;
     var uuid;
     var selectionChangeEvent = {
       unselect: [],
@@ -75,18 +76,18 @@ if (PDBV === undefined) {
     };
     if (this.modifierKeys.control === false && this.modifierKeys.shift === false && this.modifierKeys.meta === false) {
       // 没有按下这三个键，则清除之前的选择
-      for (uuid in this.view._selected) {
+      for (uuid in view._selected) {
         selectionChangeEvent.unselect.push(uuid);
-        this.view.molMetaData[uuid].selected = false;
+        view.molMetaData[uuid].selected = false;
       }
-      this.view._selected = {};
+      view._selected = {};
     }
     selectionChangeEvent.select.push(atom.uuid);
-    this.view.molMetaData[atom.uuid].selected = true;
-    this.view._selected[atom.uuid] = true;
-    this.view.forCurrentModel(function (model) {
+    view.molMetaData[atom.uuid].selected = true;
+    view._selected[atom.uuid] = true;
+    view.forCurrentModel(function (model) {
       model.onSelectionChange(selectionChangeEvent);
-      this.view.render();
+      view.render();
     });
   };
 

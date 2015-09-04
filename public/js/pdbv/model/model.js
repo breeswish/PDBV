@@ -124,7 +124,7 @@ if (PDBV.model === undefined) {
     var intersects = this.raycaster.intersectObjects(this.interactiveObjects);
     if (intersects.length > 0) {
       var atom = intersects[0].object.data;
-      this.view.onAtomClicked(atom);
+      this.view.viewSelection.onAtomClicked(atom);
     }
   };
 
