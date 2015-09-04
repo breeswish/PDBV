@@ -47,12 +47,13 @@ if (PDBV.model === undefined) {
         index: 0,
       });
       this.selectBox.material = new THREE.LineBasicMaterial({
-        color: 0xFFFFFF,
-        fog: true,
+        color: 0xFF00FF,
+        linewidth: 2,
+        fog: false,
       });
       this.selectBox.mesh = new THREE.Line(this.selectBox.geometry, this.selectBox.material, THREE.LinePieces);
-      this.selectBox.mesh.renderOrder = 1;
-      this.selectBox.material.depthTest = false;
+      //this.selectBox.mesh.renderOrder = 1;
+      //this.selectBox.material.depthTest = false;
     }
 
     this.interactiveObjects = [];
@@ -119,12 +120,12 @@ if (PDBV.model === undefined) {
   Model.prototype.syncColor = function () {};
 
   // 点击画布时，raycast
-  Model.prototype.onCanvasClick = function (mouse) {
+  Model.prototype.onCanvasClick = function (mouse, isRightClick) {
     this.raycaster.setFromCamera(mouse, this.camera);
     var intersects = this.raycaster.intersectObjects(this.interactiveObjects);
     if (intersects.length > 0) {
       var atom = intersects[0].object.data;
-      this.view.viewSelection.onAtomClicked(atom);
+      this.view.viewSelection.onAtomClicked(atom, isRightClick);
     }
   };
 

@@ -2,16 +2,6 @@
 {% block title %}Demo{% endblock %}
 {% block stylesheets %}
     <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-      }
-
-      body, html {
-        width: 100%;
-        height: 100%;
-      }
-
       #stage {
         position: absolute;
         left: 0;
@@ -63,6 +53,7 @@
     <script src="/js/pdbv/mol/residue.js"></script>
     <script src="/js/pdbv/mol/chain.js"></script>
     <script src="/js/pdbv/mol/mol.js"></script>
+    <script src="/js/pdbv/ui/atomContextMenu.js"></script>
     
     <script src="/socket.io/socket.io.js"></script>
 {% endblock %}
@@ -75,9 +66,40 @@
         <option value="Line">line</option>
       </select>
     </div>
+    <div id="atom_contextmenu" class="cm">
+      <div class="cm-item">
+        <div class="cm-item-text">atom<div class="cm-more"></div></div>
+        <div class="cm-submenu">
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="atom-center">center</div></div>
+          <div class="cm-split"></div>
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="atom-select">select</div></div>
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="atom-unselect">unselect</div></div>
+        </div>
+      </div>
+      <div class="cm-item">
+        <div class="cm-item-text">residue<div class="cm-more"></div></div>
+        <div class="cm-submenu">
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="residue-center">center</div></div>
+          <div class="cm-split"></div>
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="residue-select">select</div></div>
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="residue-unselect">unselect</div></div>
+        </div>
+      </div>
+      <div class="cm-item">
+        <div class="cm-item-text">chain<div class="cm-more"></div></div>
+        <div class="cm-submenu">
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="chain-center">center</div></div>
+          <div class="cm-split"></div>
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="chain-select">select</div></div>
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="chain-unselect">unselect</div></div>
+        </div>
+      </div>
+    </div>
     <script>
       var view = new PDBV.View($('#stage')[0]);
       view.start();
+
+      PDBV.ui.atomContextMenu.attachView(view);
 
       var socket = io.connect();
       var initialized = false;
@@ -137,6 +159,7 @@
         });
       });
 
+      // 切换 model
       $('#model').change(function () {
         var model = this.value;
         view.useModel(model);
