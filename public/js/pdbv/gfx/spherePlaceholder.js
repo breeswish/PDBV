@@ -28,6 +28,7 @@ if (PDBV.gfx === undefined) {
   });
 
   SpherePlaceholder.prototype.raycast = function (raycaster, intersects) {
+    // TODO: 修复背后穿越的 bug
     if (raycaster.ray.isIntersectionSphere(this.sphere)) {
       intersects.push({
         distance: raycaster.ray.origin.distanceTo(this.sphere.center) - this.sphere.radius,

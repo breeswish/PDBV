@@ -12,32 +12,33 @@ if (PDBV.gfx === undefined) {
 
 (function () {
 
-  if (PDBV.gfx.sphereGeometry !== undefined) {
+  if (PDBV.gfx.SphereGeometry !== undefined) {
     return;
   }
 
-  var sphereGeometry = {};
-  PDBV.gfx.sphereGeometry = sphereGeometry;
+  var SphereGeometry = function (widthSegments, heightSegments) {
+    this.widthSegments = widthSegments;
+    this.heightSegments = heightSegments;
+    this.sampleVertices = (this.widthSegments * this.heightSegments * 2 - this.widthSegments - this.heightSegments) * 3;
+    this.sampleVertices3 = this.sampleVertices * 3;
+    this.sampleVertices2 = this.sampleVertices * 2;
+    this._cache = {};
+  };
 
-  var _cache = {};
+  PDBV.gfx.SphereGeometry = SphereGeometry;
 
-  var getBufferGeometry = function (radius, widthSegments, heightSegments) {
-    var cacheKey = radius + '_' + widthSegments + '_' + heightSegments;
-    if (_cache[cacheKey] === undefined) {
-      var geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
+  SphereGeometry.prototype.getBufferGeometry = function (radius) {
+    if (this._cache[radius] === undefined) {
+      var geometry = new THREE.SphereGeometry(radius, this.widthSegments, this.heightSegments);
       var bufferGeometry = new THREE.BufferGeometry();
       bufferGeometry.fromGeometry(geometry);
-      _cache[cacheKey] = bufferGeometry;
+      this._cache[radius] = bufferGeometry;
     }
-    return _cache[cacheKey];
+    return this._cache[radius];
   };
 
-  sphereGeometry.getSampleVertices = function (widthSegments, heightSegments) {
-    return (widthSegments * heightSegments * 2 - widthSegments - heightSegments) * 3;
-  };
-
-  sphereGeometry.makeWithUV = function (radius, widthSegments, heightSegments, bufPositions, bufNormals, bufUVs, offsets, a) {
-    var sampleGeom = getBufferGeometry(radius, widthSegments, heightSegments);
+  SphereGeometry.prototype.makeWithUV = function (radius, bufPositions, bufNormals, bufUVs, offsets, a) {
+    var sampleGeom = this.getBufferGeometry(radius);
 
     // copy normals and uvs
     bufNormals.set(sampleGeom.attributes.position.array, offsets.vector3);
@@ -52,8 +53,16 @@ if (PDBV.gfx === undefined) {
       bufPositions[i + offsets.vector3 + 2] = sampleBufPositions[i + 2] + a.z;
     }
 
-    offsets.vector3 += sampleGeom.attributes.position.array.length;
-    offsets.vector2 += sampleGeom.attributes.uv.array.length;
+    offsets.vector3 += this.sampleVertices3;
+    offsets.vector2 += this.sampleVertices2;
+  };
+
+  SphereGeometry.prototype.makeColor = function (bufColors, offsets, color) {
+    var i, len;
+    for (i = 0, len = this.sampleVertices3; i < len; i += 3) {
+      bufColors.set(color, offsets.vector3);
+      offsets.vector3 += 3;
+    }
   };
 
 }());

@@ -35,7 +35,11 @@ if (PDBV === undefined) {
     };
 
     this.modelOptions = {
-      model: 'BallAndStick'
+      model: 'SpaceFill'
+    };
+
+    this.coloringOptions = {
+      coloring: 'byElement'
     };
 
     this.loaded = false;
@@ -43,6 +47,7 @@ if (PDBV === undefined) {
     this.molMetaData = null;
     this.molMap = null;
     this.currentModel = null;
+    this.currentColoring = null;
     this.gfxModels = {};
 
     this._selected = {};
@@ -206,6 +211,7 @@ if (PDBV === undefined) {
         uuid: atom.uuid,
         visible: true,
         selected: false,
+        color: new Float32Array([1, 1, 1])
       };
       self.molMap[atom.uuid] = atom;
     });
@@ -218,6 +224,8 @@ if (PDBV === undefined) {
     this.resetControlsParameters(status.controls);
 
     this.useModel(status.model);
+    this.useColoring(status.coloring);
+    this.render();
   };
 
   PDBV.View.prototype.resetControlsParameters = function (parameters) {
@@ -290,7 +298,33 @@ if (PDBV === undefined) {
     this.gfxModels[modelName].syncCameraAspect();
     this.gfxModels[modelName].activate();
     this.gfxModels[modelName].resetSelection();
-    this.render();
+  };
+
+  PDBV.View.prototype.useColoring = function (coloring) {
+    if (coloring === undefined || coloring === null) {
+      coloring = this.coloringOptions.coloring;
+    }
+
+    if (this.currentColoring === coloring) {
+      return;
+    }
+
+    if (this.currentModel === null) {
+      return;
+    }
+
+    // 着色方案不存在
+    if (PDBV.coloring[coloring] === null) {
+      return;
+    }
+
+    PDBV.coloring[coloring](this.mol, this.molMetaData);
+
+    this.forCurrentModel(function (model) {
+      model.syncColor();
+    });
+
+    this.emitEvent('coloringChanged', [coloring, 'view']);
   };
 
   PDBV.View.prototype.onWindowResize = function () {
@@ -308,6 +342,8 @@ if (PDBV === undefined) {
       this.resetControlsParameters(val);
     } else if (key === 'modelChanged') {
       this.useModel(val);
+    } else if (key === 'coloringChanged') {
+      this.useColoring(val);
     }
   };
 

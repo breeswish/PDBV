@@ -12,17 +12,9 @@ if (PDBV.gfx === undefined) {
 
 (function () {
 
-  if (PDBV.gfx.stickGeometry !== undefined) {
+  if (PDBV.gfx.StickGeometry !== undefined) {
     return;
   }
-
-  var stickGeometry = {};
-  PDBV.gfx.stickGeometry = stickGeometry;
-
-  stickGeometry.getSampleVertices = function (segments) {
-    // 2 triangle / face & 3 vertics / triangle
-    return segments * 2 * 3;
-  };
 
   var SEGMENTS_MAX = 20;
 
@@ -43,7 +35,15 @@ if (PDBV.gfx === undefined) {
   }
   // ================================
 
-  stickGeometry.makeWithUV = function (segments, radius, bufPositions, bufNormals, bufUVs, offsets, a, b) {
+  var StickGeometry = function (segments) {
+    this.segments = segments;
+    this.sampleVertices = this.segments * 2 * 3;
+    this.sampleVertices3 = this.sampleVertices * 3;
+  };
+
+  PDBV.gfx.StickGeometry = StickGeometry;
+
+  StickGeometry.prototype.makeWithUV = function (radius, bufPositions, bufNormals, bufUVs, offsets, a, b) {
     var v, cx, cy;
     var ip, va, vb, vc, vd, na, nb, nc, nd, uva, uvb, uvc, uvd;
     var i;
@@ -55,8 +55,8 @@ if (PDBV.gfx === undefined) {
     vecNormal.crossVectors(vec1, vec2).normalize();
     vecNormalT.crossVectors(vecNormal, vec).normalize();
 
-    for (i = 0; i < segments; ++i) {
-      v = i / segments * 2 * Math.PI;
+    for (i = 0; i < this.segments; ++i) {
+      v = i / this.segments * 2 * Math.PI;
       cx = -radius * Math.cos(v);
       cy = radius * Math.sin(v);
       seg.x = cx * vecNormal.x + cy * vecNormalT.x;
@@ -68,21 +68,29 @@ if (PDBV.gfx === undefined) {
     }
 
     // create surface
-    for (i = 0; i < segments; ++i) {
-      ip = (i + 1) % segments;
+    for (i = 0; i < this.segments; ++i) {
+      ip = (i + 1) % this.segments;
       va = pa[i];
       vb = pb[i];
       vc = pb[ip];
       vd = pa[ip];
-      uva = [0, i / segments];
-      uvb = [1, i / segments];
-      uvc = [1, (i + 1) / segments];
-      uvd = [0, (i + 1) / segments];
+      uva = [0, i / this.segments];
+      uvb = [1, i / this.segments];
+      uvc = [1, (i + 1) / this.segments];
+      uvd = [0, (i + 1) / this.segments];
       na = normals[i];
       nb = normals[i];
       nc = normals[ip];
       nd = normals[ip];
       PDBV.gfx.face.makeWithUV(bufPositions, bufNormals, bufUVs, offsets, va, vb, vc, vd, na, nb, nc, nd, uva, uvb, uvc, uvd);
+    }
+  };
+
+  StickGeometry.prototype.makeColor = function (bufColors, offsets, color) {
+    var i, len;
+    for (i = 0, len = this.sampleVertices3; i < len; i += 3) {
+      bufColors.set(color, offsets.vector3);
+      offsets.vector3 += 3;
     }
   };
 

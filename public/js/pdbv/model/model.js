@@ -112,7 +112,11 @@ if (PDBV.model === undefined) {
     }
   };
 
+  // To be implemented in sub classes
   Model.prototype.initGeometries = function () {};
+
+  // To be implemented in sub classes
+  Model.prototype.syncColor = function () {};
 
   // 点击画布时，raycast
   Model.prototype.onCanvasClick = function (mouse) {

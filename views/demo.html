@@ -44,6 +44,7 @@
     <script src="/js/pdbv/loader.js"></script>
     <script src="/js/pdbv/constant/atomRadius.js"></script>
     <script src="/js/pdbv/constant/elementCovalentRadius.js"></script>
+    <script src="/js/pdbv/constant/elementColors.js"></script>
     <script src="/js/pdbv/gfx/virtualCamera.js"></script>
     <script src="/js/pdbv/gfx/triangle.js"></script>
     <script src="/js/pdbv/gfx/face.js"></script>
@@ -52,12 +53,12 @@
     <script src="/js/pdbv/gfx/selectionBoxGeometry.js"></script>
     <script src="/js/pdbv/gfx/placeholder.js"></script>
     <script src="/js/pdbv/gfx/spherePlaceholder.js"></script>
-    <script src="/js/pdbv/gfx/stickPlaceholder.js"></script>
     <script src="/js/pdbv/model/model.js"></script>
     <script src="/js/pdbv/model/spaceFill.js"></script>
     <script src="/js/pdbv/model/line.js"></script>
     <script src="/js/pdbv/model/ballAndStick.js"></script>
     <script src="/js/pdbv/model/cartoon.js"></script>
+    <script src="/js/pdbv/coloring/byElement.js"></script>
     <script src="/js/pdbv/mol/atom.js"></script>
     <script src="/js/pdbv/mol/residue.js"></script>
     <script src="/js/pdbv/mol/chain.js"></script>
@@ -118,7 +119,7 @@
       };
 
       // 监听各个事件
-      var syncEvents = ['pdbChanged', 'controlsChanged', 'modelChanged'];
+      var syncEvents = ['pdbChanged', 'controlsChanged', 'modelChanged', 'coloringChanged'];
       syncEvents.forEach(function (eventName) {
         // 每个事件 20ms 内只会触发一次 updateStatus
         var func = _.throttle(function (ev) {
@@ -139,6 +140,7 @@
       $('#model').change(function () {
         var model = this.value;
         view.useModel(model);
+        view.render();
       });
       
     </script>
