@@ -1,4 +1,4 @@
-/*global THREE, Stats, window, EventEmitter, Float32Array */
+/*global THREE, Stats, window, EventEmitter, Float32Array, TWEEN */
 
 var PDBV;
 
@@ -105,6 +105,10 @@ if (PDBV === undefined) {
     // slice related
     this.viewSlice = new PDBV.ViewSlice(this);
     this.viewSlice.attachListeners();
+
+    // center related
+    this.viewCenter = new PDBV.ViewCenter(this);
+    this.viewCenter.attachListeners();
   };
 
   PDBV.View.prototype._attachListeners = function () {
@@ -188,8 +192,9 @@ if (PDBV === undefined) {
     this._animate();
   };
 
-  PDBV.View.prototype._animate = function () {
+  PDBV.View.prototype._animate = function (time) {
     window.requestAnimationFrame(this._animate.bind(this));
+    TWEEN.update(time);
     this.controls.update(this.clock.getDelta());
   };
 

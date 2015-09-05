@@ -31,6 +31,16 @@ if (PDBV.model === undefined) {
 
   LineModel.prototype.modelName = 'Line';
 
+  LineModel.prototype.selectBoxOptions = {
+    enabled: true,
+    getSize: function () {
+      return 0.2;
+    },
+    getWidth: function (atom, size) {
+      return size * 0.5;
+    },
+  };
+
   LineModel.prototype.initGeometries = function () {
     var model = this;
 

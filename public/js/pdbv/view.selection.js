@@ -14,6 +14,7 @@ if (PDBV === undefined) {
 
   PDBV.ViewSelection = function (view) {
     this.view = view;
+    this.lastClickTimestamp = null;
   };
 
   PDBV.ViewSelection.prototype.attachListeners = function () {
@@ -49,7 +50,7 @@ if (PDBV === undefined) {
   };
 
   PDBV.ViewSelection.prototype.onAtomSelected = function (atom) {
-    this.selectAtom(atom, !this.view._selected[atom.uuid]);
+    this.selectResidueOrChain(atom.residue, !this.view._selected[atom.uuid]);
   };
 
   PDBV.ViewSelection.prototype.selectAtom = function (atom, isSelect) {
@@ -74,9 +75,7 @@ if (PDBV === undefined) {
       delete view._selected[uuid];
       selectionChangeEvent.unselect.push(uuid);
     }
-    view.forCurrentModel(function (model) {
-      view.emitEvent('selectionChanged', [selectionChangeEvent, 'view']);
-    });
+    view.emitEvent('selectionChanged', [selectionChangeEvent, 'view']);
   };
 
   PDBV.ViewSelection.prototype.selectResidueOrChain = function (residueOrChain, isSelect) {
@@ -111,7 +110,7 @@ if (PDBV === undefined) {
 
   PDBV.ViewSelection.prototype.onAtomContextMenu = function (atom) {
     var view = this.view;
-    view.emitEvent('atomContextMenu', [atom]);
+    view.emitEvent('atomContextMenu', [atom, 'view']);
   };
 
   PDBV.ViewSelection.prototype.onAtomClicked = function (atom, isRightClick) {
@@ -119,7 +118,21 @@ if (PDBV === undefined) {
       this.onAtomContextMenu(atom);
     } else {
       this.onAtomSelected(atom);
+      if (this.lastClickTimestamp !== null) {
+        if (Date.now() - this.lastClickTimestamp < 400) {
+          this.onAtomDoubleClicked(atom);
+          this.lastClickTimestamp = null;
+        } else {
+          this.lastClickTimestamp = Date.now();
+        }
+      } else {
+        this.lastClickTimestamp = Date.now();
+      }
     }
+  };
+
+  PDBV.ViewSelection.prototype.onAtomDoubleClicked = function (atom) {
+    this.view.emitEvent('atomDoubleClicked', [atom, 'view']);
   };
 
 }());
