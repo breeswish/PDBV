@@ -39,7 +39,7 @@ if (PDBV === undefined) {
     };
 
     this.coloringOptions = {
-      coloring: 'byElement'
+      coloring: 'byChain'
     };
 
     this.loaded = false;

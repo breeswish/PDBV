@@ -35,6 +35,7 @@
     <script src="/js/pdbv/constant/atomRadius.js"></script>
     <script src="/js/pdbv/constant/elementCovalentRadius.js"></script>
     <script src="/js/pdbv/constant/elementColors.js"></script>
+    <script src="/js/pdbv/constant/chainColors.js"></script>
     <script src="/js/pdbv/gfx/virtualCamera.js"></script>
     <script src="/js/pdbv/gfx/triangle.js"></script>
     <script src="/js/pdbv/gfx/face.js"></script>
@@ -49,12 +50,13 @@
     <script src="/js/pdbv/model/ballAndStick.js"></script>
     <script src="/js/pdbv/model/cartoon.js"></script>
     <script src="/js/pdbv/coloring/byElement.js"></script>
+    <script src="/js/pdbv/coloring/byChain.js"></script>
     <script src="/js/pdbv/mol/atom.js"></script>
     <script src="/js/pdbv/mol/residue.js"></script>
     <script src="/js/pdbv/mol/chain.js"></script>
     <script src="/js/pdbv/mol/mol.js"></script>
     <script src="/js/pdbv/ui/atomContextMenu.js"></script>
-    
+
     <script src="/socket.io/socket.io.js"></script>
 {% endblock %}
 {% block body %}
@@ -165,6 +167,6 @@
         view.useModel(model);
         view.render();
       });
-      
+
     </script>
 {% endblock %}
