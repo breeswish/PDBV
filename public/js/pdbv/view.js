@@ -39,7 +39,7 @@ if (PDBV === undefined) {
     };
 
     this.coloringOptions = {
-      coloring: 'byElement'
+      coloring: 'carbonByChain'
     };
 
     this.loaded = false;
