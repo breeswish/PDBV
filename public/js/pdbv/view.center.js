@@ -21,12 +21,19 @@ if (PDBV === undefined) {
     this.view.addListener('atomDoubleClicked', this.onAtomDoubleClicked.bind(this));
   };
 
-  PDBV.ViewCenter.prototype.onAtomDoubleClicked = function (atom) {
+  PDBV.ViewCenter.prototype.centerAtom = function (atom) {
+    this.centerAt(atom.vector);
+  };
+
+  PDBV.ViewCenter.prototype.centerResidueOrChain = function (residueOrChain) {
+    this.centerAt(residueOrChain.getCenter());
+  };
+
+  PDBV.ViewCenter.prototype.centerAt = function (dest) {
     if (this.tween !== null) {
       this.tween.stop();
       this.tween = null;
     }
-
     var self = this;
     var view = this.view;
     var delta = new THREE.Vector3(0, 0, 0);
@@ -34,7 +41,7 @@ if (PDBV === undefined) {
     var position = new THREE.Vector3().copy(view.camera.position);
 
     this.tween = new TWEEN.Tween(delta)
-      .to(new THREE.Vector3().copy(atom.vector).sub(_lookAt), 800)
+      .to(new THREE.Vector3().copy(dest).sub(_lookAt), 800)
       .easing(TWEEN.Easing.Quartic.Out)
       .onUpdate(function () {
         var newPosition = new THREE.Vector3().copy(position).add(delta);
@@ -49,6 +56,10 @@ if (PDBV === undefined) {
         self.tween = null;
       })
       .start();
+  };
+
+  PDBV.ViewCenter.prototype.onAtomDoubleClicked = function (atom) {
+    this.centerAtom(atom);
   };
 
 }());

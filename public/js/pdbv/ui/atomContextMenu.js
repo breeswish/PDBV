@@ -42,7 +42,13 @@ if (PDBV.ui === undefined) {
     $('.cm').hide();
     var role = this.getAttribute('role').split('-');
     if (role[1] === 'center') {
-      alert('not implemented');
+      if (role[0] === 'atom') {
+        view.viewCenter.centerAtom(lastAtom);
+      } else if (role[0] === 'residue') {
+        view.viewCenter.centerResidueOrChain(lastAtom.residue);
+      } else if (role[0] === 'chain') {
+        view.viewCenter.centerResidueOrChain(lastAtom.residue.chain);
+      }
       return;
     }
     if (role[1] === 'select' || role[1] === 'unselect') {
@@ -53,6 +59,7 @@ if (PDBV.ui === undefined) {
       } else if (role[0] === 'chain') {
         view.viewSelection.selectResidueOrChain(lastAtom.residue.chain, role[1] === 'select');
       }
+      return;
     }
   };
 
