@@ -55,11 +55,21 @@ if (PDBV === undefined) {
     this._selected = {};
 
     this._init();
+
+    this.addListener('selectionChanged', this.onSelectionChanged.bind(this));
   };
 
   PDBV.View.prototype = _.create(EventEmitter.prototype, {
     constructor: PDBV.View
   });
+
+  PDBV.View.prototype.onSelectionChanged = function (ev) {
+    var view = this;
+    view.forCurrentModel(function (model) {
+      model.onSelectionChange(ev);
+      view.render();
+    });
+  };
 
   PDBV.View.prototype._updateViewportSize = function () {
     this.width = this.container.clientWidth;
@@ -222,6 +232,8 @@ if (PDBV === undefined) {
 
     this.gfxModels = {};
     this.loaded = true;
+
+    this.emitEvent('pdbChanged', [mol.uuid, 'page']);
 
     this.viewSlice.updateOffset();
 

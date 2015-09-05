@@ -75,8 +75,7 @@ if (PDBV === undefined) {
       selectionChangeEvent.unselect.push(uuid);
     }
     view.forCurrentModel(function (model) {
-      model.onSelectionChange(selectionChangeEvent);
-      view.render();
+      view.emitEvent('selectionChanged', [selectionChangeEvent, 'view']);
     });
   };
 
@@ -106,10 +105,7 @@ if (PDBV === undefined) {
       });
     }
     if (selectionChangeEvent.select.length > 0 || selectionChangeEvent.unselect.length > 0) {
-      view.forCurrentModel(function (model) {
-        model.onSelectionChange(selectionChangeEvent);
-        view.render();
-      });
+      view.emitEvent('selectionChanged', [selectionChangeEvent, 'view']);
     }
   };
 
