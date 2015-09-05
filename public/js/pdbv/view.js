@@ -39,7 +39,7 @@ if (PDBV === undefined) {
     };
 
     this.coloringOptions = {
-      coloring: 'byChain'
+      coloring: 'byAminoAcid'
     };
 
     this.loaded = false;
