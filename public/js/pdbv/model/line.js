@@ -1,4 +1,4 @@
-/*global THREE */
+/*global THREE, Float32Array */
 
 var PDBV;
 
@@ -35,35 +35,66 @@ if (PDBV.model === undefined) {
     var model = this;
 
     var connections = PDBV.util.convalent.buildConnections(this.view.mol);
-    var colors = [];
-    this.view.mol.chains.forEach(function (chain) {
-      var geometry = new THREE.Geometry();
-      chain.forEachAtom(function (atom) {
-        connections[atom.num].forEach(function (cv) {
-          geometry.vertices.push(atom.vector, cv);
-          var color1 = new THREE.Color(0xEFFFFE);
-          color1.setRGB(view.molMetaData[atom.uuid].color[0],view.molMetaData[atom.uuid].color[1],view.molMetaData[atom.uuid].color[2]);
-          colors.push(color1);
-          var color2 = new THREE.Color(0xEFFFFE);
-          color2.setRGB(view.molMetaData[atom.uuid].color[0],view.molMetaData[atom.uuid].color[1],view.molMetaData[atom.uuid].color[2]);
-          colors.push(color2);
+    this.connections = connections;
 
+    this.lineMesh = [];
+
+    var material = new THREE.LineBasicMaterial({
+      fog: true,
+      linewidth: 2,
+      vertexColors: THREE.VertexColors
+    });
+
+    this.view.mol.chains.forEach(function (chain, i) {
+      var lines = 0;
+      chain.forEachAtom(function (atom) {
+        lines += connections[atom.num].length;
+      });
+      var lineGeometry = new THREE.BufferGeometry();
+      var bufPositions = new Float32Array(2 * 3 * lines);
+      var bufColors = new Float32Array(2 * 3 * lines);
+      var offset = 0;
+      chain.forEachAtom(function (atom) {
+        connections[atom.num].forEach(function (b) {
+          bufPositions[offset + 0] = atom.vector.x;
+          bufPositions[offset + 1] = atom.vector.y;
+          bufPositions[offset + 2] = atom.vector.z;
+          bufPositions[offset + 3] = b.x;
+          bufPositions[offset + 4] = b.y;
+          bufPositions[offset + 5] = b.z;
+          offset += 6;
         });
       });
-      console.log(colors);
-      geometry.computeBoundingSphere();
-      geometry.colors = colors;
-      var material = new THREE.LineBasicMaterial({
-        color: 0xFFFFFF,
-        fog: true,
-        linewidth: 2,
-        vertexColors: THREE.VertexColors
-      });
-      var lineSeries = new THREE.Line(geometry, material, THREE.LinePieces);
-      model.group.add(lineSeries);
+      lineGeometry.addAttribute('position', new THREE.BufferAttribute(bufPositions, 3));
+      lineGeometry.addAttribute('color', new THREE.BufferAttribute(bufColors, 3));
+      lineGeometry.computeBoundingSphere();
+
+      var mesh = new THREE.Line(lineGeometry, material, THREE.LinePieces);
+      model.group.add(mesh);
+      model.lineMesh[i] = mesh;
     });
+
+    this.syncColor();
   };
 
+  LineModel.prototype.syncColor = function () {
+    var model = this;
+    var view = this.view;
+    var connections = this.connections;
 
+    this.view.mol.chains.forEach(function (chain, i) {
+      var offset = 0;
+      var bufColors = model.lineMesh[i].geometry.attributes.color.array;
+      chain.forEachAtom(function (atom) {
+        var atomColor = view.molMetaData[atom.uuid].color;
+        connections[atom.num].forEach(function () {
+          bufColors.set(atomColor, offset);
+          bufColors.set(atomColor, offset + 3);
+          offset += 6;
+        });
+      });
+      model.lineMesh[i].geometry.attributes.color.needsUpdate = true;
+    });
+  };
 
 }());
