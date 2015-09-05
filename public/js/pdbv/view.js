@@ -39,7 +39,7 @@ if (PDBV === undefined) {
     };
 
     this.coloringOptions = {
-      coloring: 'byAminoAcid'
+      coloring: 'carbonByChain'
     };
 
     this.loaded = false;
