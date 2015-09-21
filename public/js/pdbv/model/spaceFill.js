@@ -43,6 +43,8 @@ if (PDBV.model === undefined) {
     },
   };
 
+  SpaceFillModel.prototype.hotTrackBoxOptions = SpaceFillModel.prototype.selectBoxOptions;
+
   SpaceFillModel.prototype.initGeometries = function () {
     var model = this;
 

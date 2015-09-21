@@ -57,6 +57,7 @@ if (PDBV === undefined) {
     this._init();
 
     this.addListener('selectionChanged', this.onSelectionChanged.bind(this));
+    this.addListener('hotTrackChanged', this.onHotTrackChanged.bind(this));
   };
 
   PDBV.View.prototype = _.create(EventEmitter.prototype, {
@@ -67,6 +68,14 @@ if (PDBV === undefined) {
     var view = this;
     view.forCurrentModel(function (model) {
       model.onSelectionChange(ev);
+      view.render();
+    });
+  };
+
+  PDBV.View.prototype.onHotTrackChanged = function (ev) {
+    var view = this;
+    view.forCurrentModel(function (model) {
+      model.onHotTrackChanged(ev);
       view.render();
     });
   };
@@ -214,8 +223,10 @@ if (PDBV === undefined) {
     // destroy former models
     var modelName;
     for (modelName in this.gfxModels) {
-      this.gfxModels[modelName].destroy();
-      this.gfxModels[modelName] = null;
+      if (this.gfxModels.hasOwnProperty(modelName)) {
+        this.gfxModels[modelName].destroy();
+        this.gfxModels[modelName] = null;
+      }
     }
 
     this.mol = mol;

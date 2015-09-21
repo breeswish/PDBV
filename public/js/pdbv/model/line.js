@@ -42,6 +42,8 @@ if (PDBV.model === undefined) {
     },
   };
 
+  LineModel.prototype.hotTrackBoxOptions = LineModel.prototype.selectBoxOptions;
+
   LineModel.prototype.initGeometries = function () {
     var model = this;
 

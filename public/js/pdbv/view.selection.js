@@ -15,11 +15,13 @@ if (PDBV === undefined) {
   PDBV.ViewSelection = function (view) {
     this.view = view;
     this.lastClickTimestamp = null;
+    this.lastHotTrackAmino = null;
   };
 
   PDBV.ViewSelection.prototype.attachListeners = function () {
     this.view.container.addEventListener('mousedown', this.onMouseDown.bind(this), false);
     this.view.container.addEventListener('mouseup', this.onMouseUp.bind(this), false);
+    this.view.container.addEventListener('mousemove', this.onMouseMoveHotTrack.bind(this), false);
     this.onMouseMove = this.onMouseMove.bind(this);
   };
 
@@ -46,6 +48,18 @@ if (PDBV === undefined) {
       mouse.x = (ev.clientX / this.width) * 2 - 1;
       mouse.y = -(ev.clientY / this.height) * 2 + 1;
       model.onCanvasClick(mouse, isRightClick);
+    });
+  };
+
+  PDBV.ViewSelection.prototype.onMouseMoveHotTrack = function (ev) {
+    if (ev.which !== 0) {
+      return;
+    }
+    this.view.forCurrentModel(function (model) {
+      var mouse = new THREE.Vector2();
+      mouse.x = (ev.clientX / this.width) * 2 - 1;
+      mouse.y = -(ev.clientY / this.height) * 2 + 1;
+      model.onCanvasMouseMove(mouse);
     });
   };
 
@@ -108,6 +122,22 @@ if (PDBV === undefined) {
     }
   };
 
+  PDBV.ViewSelection.prototype.setHotTrackResidue = function (residue) {
+    if (residue === this.lastHotTrackAmino) {
+      return;
+    }
+    this.lastHotTrackAmino = residue;
+    var hotTrackChangeEvent = {
+      atoms: []
+    };
+    if (residue !== null) {
+      residue.forEachAtom(function (atom) {
+        hotTrackChangeEvent.atoms.push(atom.uuid);
+      });
+    }
+    this.view.emitEvent('hotTrackChanged', [hotTrackChangeEvent, 'view']);
+  };
+
   PDBV.ViewSelection.prototype.onAtomContextMenu = function (atom) {
     var view = this.view;
     view.emitEvent('atomContextMenu', [atom, 'view']);
@@ -129,6 +159,14 @@ if (PDBV === undefined) {
         this.lastClickTimestamp = Date.now();
       }
     }
+  };
+
+  PDBV.ViewSelection.prototype.onAtomHoverIn = function (atom) {
+    this.setHotTrackResidue(atom.residue);
+  };
+
+  PDBV.ViewSelection.prototype.onAtomHoverOut = function () {
+    this.setHotTrackResidue(null);
   };
 
   PDBV.ViewSelection.prototype.onAtomDoubleClicked = function (atom) {

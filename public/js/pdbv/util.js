@@ -36,7 +36,6 @@ if (PDBV === undefined) {
     convalent: {
 
       _connectAtoms: function (connectionStructure, a, b) {
-        //console.log(a, b);
         var boneMid = new THREE.Vector3();
         boneMid.addVectors(a.vector, b.vector).divideScalar(2);
         connectionStructure[a.num].push(boneMid);

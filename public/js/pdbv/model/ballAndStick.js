@@ -47,6 +47,8 @@ if (PDBV.model === undefined) {
     },
   };
 
+  BallAndStickModel.prototype.hotTrackBoxOptions = BallAndStickModel.prototype.selectBoxOptions;
+
   BallAndStickModel.prototype.initGeometries = function () {
     var model = this;
 
