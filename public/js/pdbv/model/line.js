@@ -18,7 +18,8 @@ if (PDBV.model === undefined) {
 
   var LineModel = function () {
     this.options = {
-      lineWidth: 1
+      lineWidth: 1,
+      hittestAtomRadius: 0.2,
     };
     PDBV.model.Model.call(this);
   };
@@ -53,6 +54,13 @@ if (PDBV.model === undefined) {
       fog: true,
       linewidth: 2,
       vertexColors: THREE.VertexColors
+    });
+
+    // 可点击
+    this.view.mol.chains.forEach(function (chain) {
+      chain.forEachAtom(function (atom) {
+        model.interactiveObjects.push(new PDBV.gfx.SpherePlaceholder(atom.vector, model.options.hittestAtomRadius, atom));
+      });
     });
 
     this.view.mol.chains.forEach(function (chain, i) {
