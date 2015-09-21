@@ -91,16 +91,21 @@ var status = {
 };
 
 var uuid = require('node-uuid');
+var libRoom = require('app/libs/room');
 
 io.use(function (socket, next) {
   sessionMiddleware(socket.request, socket.request.res, next);
 });
 
-io.sockets.on('connection', function (socket) {
+io.sockets.on('connection', libRoom.onSocketConnect);
+/*)
   // not logined user
   if (socket.request.session.passport.user === undefined) {
     return;
   }
+  libRoom.handleSocket(socket);
+  console.log(socket.server === io);
+
   var id = uuid.v4();
   socket.uuid = id;
   socket.emit('initialize', {
@@ -113,7 +118,7 @@ io.sockets.on('connection', function (socket) {
     socket.broadcast.emit('event/statusUpdated', data);
   });
 });
-
+*/
 
 // Start
 server.listen(app.get('port'), function () {

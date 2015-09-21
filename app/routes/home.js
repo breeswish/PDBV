@@ -1,20 +1,11 @@
 var express = require('express');
 var router = express.Router();
 
-router.get('/', function (req, res) {
-  if (req.isAuthenticated()) {
-    res.redirect('/dashboard');
-    return;
-  }
-  res.redirect('/login');
-});
+var authUtil = require('app/libs/auth/util');
+var libRoom = require('app/libs/room');
 
-router.get('/dashboard', function (req, res) {
-  res.redirect('/demo');
-});
-
-router.get('/demo', function (req, res) {
-  res.render('demo');
+router.get('/', authUtil.isAuthenticated, function (req, res) {
+  res.render('index');
 });
 
 module.exports = router;

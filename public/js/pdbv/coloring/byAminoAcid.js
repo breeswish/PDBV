@@ -18,7 +18,6 @@ if (PDBV.coloring === undefined) {
     var colorTable = PDBV.constant.aminoAcidColors;
     mol.forEachAtom(function (atom) {
       molMetaData[atom.uuid].color.set(colorTable[atom.residue.name]);
-      console.log(atom.element);
     });
   };
 

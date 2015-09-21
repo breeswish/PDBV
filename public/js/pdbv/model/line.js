@@ -87,6 +87,17 @@ if (PDBV.model === undefined) {
     this.syncColor();
   };
 
+  LineModel.prototype.syncCamera = function () {
+    PDBV.model.Model.prototype.syncCamera.call(this);
+    var distance = this._distance;
+    var model = this;
+    this.view.mol.chains.forEach(function (chain, i) {
+      if (model.lineMesh && model.lineMesh[i]) {
+        model.lineMesh[i].material.linewidth = (1 / distance) * 50;
+      }
+    });
+  };
+
   LineModel.prototype.syncColor = function () {
     var model = this;
     var view = this.view;

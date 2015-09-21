@@ -1,0 +1,130 @@
+{% extends "extend.html" %}
+{% block title %}Main{% endblock %}
+{% block javascripts %}
+<script src="/lib/lodash/lodash.js"></script>
+<script src="/lib/jquery/jquery-2.1.4.min.js"></script>
+<script src="/lib/three/three.min.js"></script>
+<script src="/lib/three/stats.js"></script>
+<script src="/lib/three/controls/TrackballControls.js"></script>
+<script src="/lib/eventemitter/ee.js"></script>
+<script src="/lib/tweenjs/tween.min.js"></script>
+<script src="/lib/ohsnap/ohsnap.js"></script>
+<script src="/js/pdbv/util.js"></script>
+<script src="/js/pdbv/view.js"></script>
+<script src="/js/pdbv/view.selection.js"></script>
+<script src="/js/pdbv/view.slice.js"></script>
+<script src="/js/pdbv/view.center.js"></script>
+<script src="/js/pdbv/loader.js"></script>
+<script src="/js/pdbv/constant/atomRadius.js"></script>
+<script src="/js/pdbv/constant/elementCovalentRadius.js"></script>
+<script src="/js/pdbv/constant/elementColors.js"></script>
+<script src="/js/pdbv/constant/chainColors.js"></script>
+<script src="/js/pdbv/constant/aminoAcidColors.js"></script>
+<script src="/js/pdbv/constant/aminoAbbr.js"></script>
+<script src="/js/pdbv/gfx/virtualCamera.js"></script>
+<script src="/js/pdbv/gfx/triangle.js"></script>
+<script src="/js/pdbv/gfx/face.js"></script>
+<script src="/js/pdbv/gfx/stickGeometry.js"></script>
+<script src="/js/pdbv/gfx/sphereGeometry.js"></script>
+<script src="/js/pdbv/gfx/selectionBoxGeometry.js"></script>
+<script src="/js/pdbv/gfx/placeholder.js"></script>
+<script src="/js/pdbv/gfx/spherePlaceholder.js"></script>
+<script src="/js/pdbv/model/model.js"></script>
+<script src="/js/pdbv/model/spaceFill.js"></script>
+<script src="/js/pdbv/model/line.js"></script>
+<script src="/js/pdbv/model/ballAndStick.js"></script>
+<script src="/js/pdbv/model/cartoon.js"></script>
+<script src="/js/pdbv/coloring/byElement.js"></script>
+<script src="/js/pdbv/coloring/byChain.js"></script>
+<script src="/js/pdbv/coloring/byAminoAcid.js"></script>
+<script src="/js/pdbv/coloring/carbonByChain.js"></script>
+<script src="/js/pdbv/mol/atom.js"></script>
+<script src="/js/pdbv/mol/residue.js"></script>
+<script src="/js/pdbv/mol/chain.js"></script>
+<script src="/js/pdbv/mol/mol.js"></script>
+<script src="/js/pdbv/ui/atomContextMenu.js"></script>
+<script src="/js/pdbv/ui/selectionArea.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+
+<script src="/js/libroom.js"></script>
+<script src="/js/libstructure.js"></script>
+<script src="/js/index.js"></script>
+{% endblock %}
+{% block body %}
+    <div id="ohsnap"></div>
+    <div id="stage"></div>
+    <div id="control">
+      <div class="control-group control-group--room">
+        <div class="control-group__title">Room (<span class="role-current-room">--</span>)</div>
+        <div class="control-group__content">
+          <div><select id="select_rooms"></select></div>
+          <div><a href="javascript:;" class="role-room-join">Join</a> / <a href="javascript:;" class="role-room-refresh">Refresh</a> / <a href="javascript:;" class="role-room-create">Create new</a></div>
+        </div>
+      </div>
+      <div class="control-group control-group--style" style="display:none">
+        <div class="control-group__title">Structure (<span class="role-current-structure">--</span>)</div>
+        <div class="control-group__content">
+          <div><select id="select_structure"></select></div>
+          <div><a href="javascript:;" class="role-structure-apply">Apply</a> / <a href="javascript:;" class="role-structure-refresh">Refresh</a> / <a href="/structure" target="_blank">Manage</a></div>
+        </div>
+      </div>
+      <div class="control-group control-group--style" style="display:none">
+        <div class="control-group__title">Style</div>
+        <div class="control-group__content">
+          <select id="select_style">
+            <option value="none">-- Choose --</option>
+            <option value="SpaceFill">space fill</option>
+            <option value="BallAndStick">ball and stick</option>
+            <option value="Line">line</option>
+          </select>
+        </div>
+      </div>
+      <div class="control-group control-group--coloring" style="display:none">
+        <div class="control-group__title">Coloring</div>
+        <div class="control-group__content">
+          <select id="select_coloring">
+            <option value="none">-- Choose --</option>
+            <option value="byAminoAcid">by amino acid</option>
+            <option value="byChain">by chain</option>
+            <option value="byElement">by element</option>
+            <option value="carbonByChain">carbon by chain</option>
+          </select>
+        </div>
+      </div>
+      <div class="control-group control-group--selection" style="display:none">
+        <div class="control-group__title">Selection</div>
+        <div class="control-group__content">
+          <canvas id="selectionArea"></canvas>
+        </div>
+      </div>
+    </div>
+    <div id="atom_contextmenu" class="cm">
+      <div class="cm-item">
+        <div class="cm-item-text">atom<div class="cm-more"></div></div>
+        <div class="cm-submenu">
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="atom-center">center</div></div>
+          <div class="cm-split"></div>
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="atom-select">select</div></div>
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="atom-unselect">unselect</div></div>
+        </div>
+      </div>
+      <div class="cm-item">
+        <div class="cm-item-text">residue<div class="cm-more"></div></div>
+        <div class="cm-submenu">
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="residue-center">center</div></div>
+          <div class="cm-split"></div>
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="residue-select">select</div></div>
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="residue-unselect">unselect</div></div>
+        </div>
+      </div>
+      <div class="cm-item">
+        <div class="cm-item-text">chain<div class="cm-more"></div></div>
+        <div class="cm-submenu">
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="chain-center">center</div></div>
+          <div class="cm-split"></div>
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="chain-select">select</div></div>
+          <div class="cm-item"><div class="cm-item-text cm-item-role" role="chain-unselect">unselect</div></div>
+        </div>
+      </div>
+    </div>
+{% endblock %}

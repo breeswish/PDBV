@@ -23,9 +23,9 @@ if (PDBV === undefined) {
     },
 
     getAtomRadius: function (atom) {
-      var key = atom.residue.name + ' ' + atom.name;
-      if (key !== undefined) {
-        return PDBV.constant.atomRadius[key];
+      var v = PDBV.constant.atomRadius[atom.residue.name + ' ' + atom.name];
+      if (v !== undefined) {
+        return v;
       }
       if (atom.element === 'H') {
         return 1;

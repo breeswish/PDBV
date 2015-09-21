@@ -35,7 +35,7 @@ if (PDBV === undefined) {
     };
 
     this.modelOptions = {
-      model: 'SpaceFill'
+      model: 'Line'
     };
 
     this.coloringOptions = {
@@ -218,11 +218,16 @@ if (PDBV === undefined) {
       this.gfxModels[modelName] = null;
     }
 
-    this._selected = {};
-
     this.mol = mol;
     this.molMetaData = {};
     this.molMap = {};
+    this.molCenter = mol.getCenter();
+    this.molRadius = mol.getRadius();
+    this.currentModel = null;
+    this.currentColoring = null;
+    this.gfxModels = {};
+    this._selected = {};
+
     this.mol.forEachAtom(function (atom) {
       self.molMetaData[atom.uuid] = {
         uuid: atom.uuid,
@@ -232,10 +237,7 @@ if (PDBV === undefined) {
       };
       self.molMap[atom.uuid] = atom;
     });
-    this.molCenter = mol.getCenter();
-    this.molRadius = mol.getRadius();
 
-    this.gfxModels = {};
     this.loaded = true;
 
     this.emitEvent('pdbChanged', [mol.uuid, 'page']);

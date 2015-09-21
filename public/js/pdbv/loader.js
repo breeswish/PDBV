@@ -21,22 +21,25 @@ if (PDBV === undefined) {
 
   PDBV.loader = {
 
-    load: function () {
+    load: function (data, id) {
+      var atomCounter = 0;
       // TODO: parse PDB file
-      var data = PDB_DATA;
-      var mol = new PDBV.Mol(data.pdbid /* todo: uuid */, data.pdbid);
+      var mol = new PDBV.Mol(id /* todo: uuid */, id);
       data.chains.forEach(function (chainData) {
         var chain = new PDBV.Chain(uuid() /* todo: uuid */, chainData.chain_id);
         mol.addChain(chain);
         chainData.aminos.forEach(function (aminoData) {
+          if (PDBV.constant.aminoAbbr[aminoData.res_name] === undefined) {
+            return;
+          }
           var residue = new PDBV.Residue(uuid() /* todo: uuid */, aminoData.res_name, aminoData.res_seq, aminoData.i_code.trim());
           chain.addResidue(residue);
           aminoData.atoms.forEach(function (atomData) {
             var pos = new THREE.Vector3();
-            pos.x = parseFloat(atomData.x);
-            pos.y = parseFloat(atomData.y);
-            pos.z = parseFloat(atomData.z);
-            var atom = new PDBV.Atom(uuid() /* todo: uuid */, atomData.name, atomData.element.trim(), pos, atomData.serial, atomData.temp_factor.trim());
+            pos.x = atomData.x;
+            pos.y = atomData.y;
+            pos.z = atomData.z;
+            var atom = new PDBV.Atom(uuid() /* todo: uuid */, atomData.name, atomData.element, pos, ++atomCounter, atomData.temp_factor);
             residue.addAtom(atom);
           });
         });

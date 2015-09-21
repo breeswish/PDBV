@@ -1,0 +1,32 @@
+{% extends "extend.html" %}
+{% block title %}Manage structures{% endblock %}
+{% block javascripts %}
+<script src="/lib/lodash/lodash.js"></script>
+<script src="/lib/jquery/jquery-2.1.4.min.js"></script>
+<script src="/lib/momentjs/moment.min.js"></script>
+
+<script src="/js/structure.js"></script>
+{% endblock %}
+{% block body %}
+<div class="structure-page">
+  <div class="structure--sidebar">
+    <h3>Upload structure</h3>
+    <div class="form__line structure-message">
+    {% if error %}
+      <div class="login__message message message--failure">{{ error }}</div>
+    {% elseif info %}
+      <div class="login__message message message--info">{{ info }}</div>
+    {% endif %}
+    </div>
+    <form action="/structure" method="post" enctype="multipart/form-data">
+      <div class="form__line"><label>Title: </label><input class="textbox"name="title" required></div>
+      <div class="form__line"><label>Upload: </label><input type="file" name="file" id="file"/></div>
+      <div class="form__line"><input class="btn" type="submit" name="submit" value="Upload"></div>
+    </form>
+  </div>
+  <div class="structure--main">
+    <h3>Manage structure</h3>
+    <div class="structure-list"></div>
+  </div>
+</div>
+{% endblock %}
