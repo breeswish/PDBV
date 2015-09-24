@@ -10,6 +10,10 @@ if (PDBV === undefined) {
     this.reset.apply(this, arguments);
   };
 
+  PDBV.Residue.prototype = _.create(PDBV.AtomsStructure.prototype, {
+    constructor: PDBV.Residue
+  });
+
   PDBV.Residue.prototype.reset = function (uuid, name, num, insCode) {
     this.chain = null;
     this.index = -1;
@@ -87,20 +91,6 @@ if (PDBV === undefined) {
       indexOffset++;
     }
     return indexOffset;
-  };
-
-  PDBV.Residue.prototype.getCenter = function () {
-    var x = 0, y = 0, z = 0;
-    var count = this.getAtomCount();
-    this.forEachAtom(function (atom) {
-      x += atom.vector.x;
-      y += atom.vector.y;
-      z += atom.vector.z;
-    });
-    x /= count;
-    y /= count;
-    z /= count;
-    return new THREE.Vector3(x, y, z);
   };
 
 }());
