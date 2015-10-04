@@ -122,7 +122,7 @@ if (PDBV.model === undefined) {
     var virtualCamera = this.view.camera;
     var distance = this._distance = virtualCamera._lookAt.distanceTo(virtualCamera.position);
     this.camera.up.copy(virtualCamera.up);
-    this.camera.near = Math.max(distance - virtualCamera.offset, 0.01);
+    this.camera.near = 0.01;
     this.camera.far = distance + this.view.molRadius * 2;
     if (this._near !== this.camera.near || this._far !== this.camera.far) {
       this.camera.updateProjectionMatrix();
@@ -134,8 +134,8 @@ if (PDBV.model === undefined) {
     this.camera.updateMatrixWorld();
     this.light.position.copy(virtualCamera.position);
     if (this.fogOptions.enabled) {
-      this.scene.fog.near = this.fogOptions.near + distance;
-      this.scene.fog.far = this.fogOptions.far + distance;
+      this.scene.fog.near = distance;
+      this.scene.fog.far = distance + Math.max(virtualCamera.offset, 1);
     }
   };
 
