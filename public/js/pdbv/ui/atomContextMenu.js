@@ -68,6 +68,9 @@ if (PDBV.ui === undefined) {
     // 右键
     view.addListener('atomContextMenu', onAtomContextMenu);
     view.container.addEventListener('mousedown', onCanvasMouseDown);
+    window.addEventListener('contextmenu', function (ev) {
+      ev.preventDefault();
+    });
     $('.cm-item-role').click(onCMClick);
   };
 
