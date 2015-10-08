@@ -8,7 +8,7 @@ if (PDBV === undefined) {
 
 (function () {
 
-  var SCALE = Math.pow(0.95, 1.0);
+  var SCALE = Math.pow(0.95, 1.5);
 
   if (PDBV.ViewSlice !== undefined) {
     return;
@@ -56,6 +56,9 @@ if (PDBV === undefined) {
     this.visiblePercent *= SCALE;
     if (this.visiblePercent > 1) {
       this.visiblePercent = 1;
+    }
+    if (this.visiblePercent < 0.01) {
+      this.visiblePercent = 0.01;
     }
   };
 

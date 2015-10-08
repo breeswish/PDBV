@@ -157,7 +157,7 @@ if (PDBV === undefined) {
   PDBV.View.prototype._createTrackballControl = function () {
     this.controls = new THREE.TrackballControls(this.camera, this.container);
     this.controls.target.copy(this.cameraOptions.lookAt);
-    this.controls.rotateSpeed = 2.0;
+    this.controls.rotateSpeed = 6.0;
     this.controls.maxDistance = 5000;
     this.controls.staticMoving = true;
     this.controls.addEventListener('change', this.onControlsChange.bind(this));
